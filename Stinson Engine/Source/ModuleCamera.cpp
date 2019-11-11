@@ -60,8 +60,10 @@ math::float4x4 ModuleCamera::LookAt(math::float3 eye, math::float3 target, math:
 }
 
 void ModuleCamera::CalculateMatrixes() {
+	//TODO cambiar rotAngle per matriu de rotacio
+	// math::float4x4 = math::floatRotateX(x) * math::floatRotateY(x) * math::floatRotateZ(x)
 	model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
-	view = LookAt(math::float3(0.0F, 1.F, 4.0F), rotAngle, math::float3::unitY);
+	view = LookAt(math::float3(0.0F, 1.F, 4.0F), rotAngle, math::float3::unitY); 
 	proj = frustum.ProjectionMatrix();
 }
 

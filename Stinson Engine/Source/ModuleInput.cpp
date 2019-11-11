@@ -57,6 +57,7 @@ UpdateStatus ModuleInput::PreUpdate() {
 		switch (event.type) {
 		case SDL_QUIT:
 			windowEvents[(int)EventWindow::QUIT] = true;
+			return UpdateStatus::STOP;
 			break;
 
 		case SDL_WINDOWEVENT:
@@ -102,6 +103,12 @@ UpdateStatus ModuleInput::PreUpdate() {
 
 		case SDL_MOUSEWHEEL:
 			*mouseWheel = event.wheel;
+			break;
+
+		case SDL_DROPFILE:
+			//TODO drag and drop
+			//char *droppedFile = event.drop.file;
+			//App->model->ChangeMesh(0, droppedFile, App->textures->Load("../Resources/Assets/samus.png"), *App->programs->textureProgram);
 			break;
 		}
 	}

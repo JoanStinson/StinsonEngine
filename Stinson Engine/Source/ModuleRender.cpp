@@ -274,5 +274,5 @@ void __stdcall OpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum
 	}
 	sprintf_s(tmp_string, 4095, "<Severity:%s> <Source:%s> <Type:%s> <ID:%d> <Message:%s>\n", tmp_severity, tmp_source, tmp_type, id, message);
 	OutputDebugString((const wchar_t*)tmp_string);
-	LOG(tmp_string);
+	//LOG(tmp_string);
 }

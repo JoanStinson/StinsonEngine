@@ -349,6 +349,21 @@ void ModuleUI::DrawConfigWindow(bool *p_open) {
 			ImGui::Text("VRAM Reserved:");
 			ImGui::SameLine();
 			ImGui::TextColored(YELLOW, "%.1f Mb", 0.0F);
+			ImGui::Separator();
+			static SDL_version compiled;
+			SDL_VERSION(&compiled);
+			ImGui::Text("SDL Version:");
+			ImGui::SameLine();
+			ImGui::TextColored(YELLOW, "%d.%d.%d", compiled.major, compiled.minor, compiled.patch);
+			ImGui::Text("Glew Version:");
+			ImGui::SameLine();
+			ImGui::TextColored(YELLOW, "%s", glewGetString(GLEW_VERSION));
+			ImGui::Text("DevIL Version:");
+			ImGui::SameLine();
+			ImGui::TextColored(YELLOW, "%d.%d.%d", (ilGetInteger(IL_VERSION_NUM) % 1000) / 100, (ilGetInteger(IL_VERSION_NUM) % 100) / 10, ilGetInteger(IL_VERSION_NUM) % 10);
+			ImGui::Text("OpenGL Version:");
+			ImGui::SameLine();
+			ImGui::TextColored(YELLOW, "%s", glGetString(GL_VERSION));
 		}
 
 		if (ImGui::Button("Change Model")) {

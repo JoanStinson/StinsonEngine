@@ -6,7 +6,8 @@
 #include <vector>
 
 union SDL_Event;
-
+//TODO have an UI for each model to display texture and model settings
+//TODO imgui texture of camera to window, use frame buffer
 class ModuleUI : public Module {
 public:
 	ModuleUI(){}
