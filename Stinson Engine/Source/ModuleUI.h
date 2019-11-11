@@ -5,13 +5,6 @@
 #include "../Libraries/ImGui/imgui.h"
 #include <vector>
 
-#define RED ImVec4(1.0F, 0.0F, 0.0F, 1.0F)
-#define GREEN ImVec4(0.0F, 1.0F, 0.0F, 1.0F)
-#define BLUE ImVec4(0.0F, 0.0F, 1.0F, 1.0F)
-#define PINK ImVec4(1.0F, 0.0F, 1.0F, 1.0F)
-#define YELLOW ImVec4(1.0F, 1.0F, 0.0F, 1.0F)
-#define LIGHT_BLUE ImVec4(0.0F, 1.0F, 1.0F, 1.0F)
-
 union SDL_Event;
 
 class ModuleUI : public Module {
@@ -40,12 +33,6 @@ private:
 private:
 	ImGuiIO io;
 
-	char engineName[40] = TITLE;
-	char description[140] = "3D engine for UPC master's degree.";
-	char author[25] = "Joan Ginard";
-	char fpsTitle[24];
-	char msTitle[24];
-
 	bool showConsoleLogWindow = false;
 	bool showConfigWindow = true;
 	bool showDemoWindow = false;
@@ -54,6 +41,25 @@ private:
 	bool resizable = true;
 	bool borderless = false;
 	bool fullDesktop = false;
+
+	bool showTriangle = false;
+	bool showSquare = true;
+	bool showSanicTexture = false;
+	bool showButterfliesTexture = true;
+	bool showLinkTexture = false;
+	bool showRepeat = false;
+	bool showMirroredRepeat = false;
+	bool showClampToEdge = false;
+	bool showClampToBorder = true;
+	bool showNearest = false;
+	bool showLinear = true;
+	bool showMipMaps = true;
+
+	char engineName[40] = TITLE;
+	char description[140] = "3D engine for UPC master's degree.";
+	char author[25] = "Joan Ginard";
+	char fpsTitle[24];
+	char msTitle[24];
 
 	float brightness = 1.0f;
 	unsigned int currentTime;
@@ -65,22 +71,6 @@ private:
 	std::vector<float> fpsLog;
 	std::vector<float> msLog;
 	std::string caps;
-
-	bool showTriangle = false;
-	bool showSquare = true;
-
-	bool showSanicTexture = false;
-	bool showButterfliesTexture = true;
-	bool showLinkTexture = false;
-
-	bool showRepeat = false;
-	bool showMirroredRepeat = false;
-	bool showClampToEdge = false;
-	bool showClampToBorder = true;
-
-	bool showNearest = false;
-	bool showLinear = true;
-	bool showMipMaps = true;
 };
 
 #endif

@@ -45,7 +45,7 @@ private:
 	KeyState mouseButtons[NUM_MOUSE_BUTTONS];
 	iPoint mouseMotion;
 	iPoint mouse;
-	SDL_MouseWheelEvent *mouseWheel = nullptr;
+	SDL_MouseWheelEvent* mouseWheel = nullptr;
 };
 
 #endif // __MODULEINPUT_H__

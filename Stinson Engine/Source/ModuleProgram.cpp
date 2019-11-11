@@ -2,13 +2,35 @@
 #include <glew.h>
 #include <assert.h>
 
+ModuleProgram::ModuleProgram() {
+	textureProgram = new unsigned();
+	gridLinesProgram = new unsigned();
+}
+
+ModuleProgram::~ModuleProgram() {
+	delete textureProgram;
+	delete gridLinesProgram;
+}
+
 bool ModuleProgram::Init() {
+	LOG("Init Module Program\n");
+	*textureProgram = LoadShader("../Resources/Shaders/texture.vs", "../Resources/Shaders/texture.fs");
+	assert(textureProgram != nullptr);
+	*gridLinesProgram = LoadShader("../Resources/Shaders/gridLines.vs", "../Resources/Shaders/gridLines.fs");
+	assert(gridLinesProgram != nullptr);
+	return true;
+}
+
+bool ModuleProgram::CleanUp() {
+	return true;
+}
+
+unsigned ModuleProgram::LoadShader(const char *vertexFile, const char *fragmentFile) {
 	// 1) Retrieve vertex/fragment source code from filePath
-	char *vShaderCode = nullptr;
-	char *fShaderCode = nullptr;
 	FILE *file = nullptr;
 
-	fopen_s(&file, "../Resources/Shaders/default.vs", "rb");
+	char *vShaderCode = nullptr;
+	fopen_s(&file, vertexFile, "rb");
 	if (file) {
 		fseek(file, 0, SEEK_END);
 		int size = ftell(file);
@@ -20,10 +42,10 @@ bool ModuleProgram::Init() {
 
 		fclose(file);
 	}
-
 	assert(file != nullptr);
 
-	fopen_s(&file, "../Resources/Shaders/default.fs", "rb");
+	char *fShaderCode = nullptr;
+	fopen_s(&file, fragmentFile, "rb");
 	if (file) {
 		fseek(file, 0, SEEK_END);
 		int size = ftell(file);
@@ -35,7 +57,6 @@ bool ModuleProgram::Init() {
 
 		fclose(file);
 	}
-
 	assert(file != nullptr);
 
 	// 2) Compile shaders
@@ -50,11 +71,11 @@ bool ModuleProgram::Init() {
 	CheckCompileErrors(fragment, "FRAGMENT");
 
 	// 3) Create program
-	def_program = glCreateProgram();
-	glAttachShader(def_program, vertex);
-	glAttachShader(def_program, fragment);
-	glLinkProgram(def_program);
-	CheckCompileErrors(def_program, "PROGRAM");
+	unsigned int program = glCreateProgram();
+	glAttachShader(program, vertex);
+	glAttachShader(program, fragment);
+	glLinkProgram(program);
+	CheckCompileErrors(program, "PROGRAM");
 
 	// 4) Delete shaders
 	glDeleteShader(vertex);
@@ -62,31 +83,24 @@ bool ModuleProgram::Init() {
 	delete vShaderCode;
 	delete fShaderCode;
 
-	return true;
+	return program;
 }
 
-bool ModuleProgram::CleanUp() {
-	return true;
-}
-
-void ModuleProgram::CheckCompileErrors(unsigned int shader, const std::string &type) const {
+void ModuleProgram::CheckCompileErrors(unsigned int shader, const char *type) const {
 	int success;
 	char infoLog[1024];
-	std::string message;
 	if (type != "PROGRAM") {
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
-			message = "ERROR::SHADER_COMPILATION_ERROR of type: " + type + "\n" + infoLog + "\n -- --------------------------------------------------- -- \n";
-			LOG(message.c_str());
+			LOG("ERROR::SHADER_COMPILATION_ERROR of type: %s \n %s \n -- --------------------------------------------------- -- \n", type, infoLog);
 		}
 	}
 	else {
 		glGetProgramiv(shader, GL_LINK_STATUS, &success);
 		if (!success) {
 			glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
-			message = "ERROR::PROGRAM_LINKING_ERROR of type: " + type + "\n" + infoLog + "\n -- --------------------------------------------------- -- \n";
-			LOG(message.c_str());
+			LOG("ERROR::SHADER_LINKING_ERROR of type: %s \n %s \n -- --------------------------------------------------- -- \n", type, infoLog);
 		}
 	}
 }

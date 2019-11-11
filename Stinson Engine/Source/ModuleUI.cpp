@@ -4,6 +4,8 @@
 #include "ModuleRender.h"
 #include "ModuleTextures.h"
 #include "ModuleCamera.h"
+#include "ModuleModelLoader.h"
+#include "ModuleProgram.h"
 #include <SDL.h>
 #include <il.h>
 #include <ilu.h>
@@ -12,24 +14,24 @@
 #include "../Libraries/ImGui/imgui_impl_sdl.h"
 #include "../Libraries/ImGui/imgui_impl_opengl3.h"
 
-bool ModuleUI::Init() {
-	// Init UI
-	LOG("Init ImGui\n");
+#define RED ImVec4(1.0F, 0.0F, 0.0F, 1.0F)
+#define GREEN ImVec4(0.0F, 1.0F, 0.0F, 1.0F)
+#define BLUE ImVec4(0.0F, 0.0F, 1.0F, 1.0F)
+#define PINK ImVec4(1.0F, 0.0F, 1.0F, 1.0F)
+#define YELLOW ImVec4(1.0F, 1.0F, 0.0F, 1.0F)
+#define LIGHT_BLUE ImVec4(0.0F, 1.0F, 1.0F, 1.0F)
 
-	// Setup Dear ImGui context
+bool ModuleUI::Init() {
+	LOG("Init Module UI\n");
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-
-	// Setup Platform/Renderer bindings
 	ImGui_ImplSDL2_InitForOpenGL(App->window->window, App->renderer->GetContext());
-	ImGui_ImplOpenGL3_Init("#version 330 core");
+	ImGui_ImplOpenGL3_Init("#version 430 core");
 	return true;
 }
 
@@ -76,7 +78,7 @@ UpdateStatus ModuleUI::Update() {
 
 UpdateStatus ModuleUI::PostUpdate() {
 	ImGui::Render();
-	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+	glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
 	//ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 	//glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
 	//glClear(GL_COLOR_BUFFER_BIT);
@@ -348,6 +350,10 @@ void ModuleUI::DrawConfigWindow(bool *p_open) {
 			ImGui::SameLine();
 			ImGui::TextColored(YELLOW, "%.1f Mb", 0.0F);
 		}
+
+		if (ImGui::Button("Change Model")) {
+			App->model->ChangeMesh(0, "../Resources/Assets/samus.obj", App->textures->Load("../Resources/Assets/samus.png"), *App->programs->textureProgram);
+		}
 	}
 	ImGui::End();
 }
@@ -369,10 +375,8 @@ void ModuleUI::DrawAboutWindow(bool *p_open) {
 		ImGui::TextColored(PINK, "%s", &author[0]);
 		ImGui::Separator();
 		if (ImGui::TreeNode("Libraries")) {
-			SDL_version compiled;
-			SDL_version linked;
+			static SDL_version compiled;
 			SDL_VERSION(&compiled);
-			SDL_GetVersion(&linked);
 			ImGui::BulletText("SDL Version:");
 			ImGui::SameLine();
 			ImGui::TextColored(YELLOW, "%d.%d.%d", compiled.major, compiled.minor, compiled.patch);

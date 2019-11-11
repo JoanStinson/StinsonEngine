@@ -5,7 +5,7 @@
 #include <SDL_image.h>
 
 bool ModuleWindow::Init() {
-	LOG("Init SDL window & surface\n");
+	LOG("Init Module Window\n");
 	bool ret = true;
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -34,9 +34,9 @@ bool ModuleWindow::Init() {
 			screen_surface = SDL_GetWindowSurface(window);
 
 			// Set window icon
-			SDL_Surface* iconSurface = IMG_Load("../Resources/Assets/windowIcon.png");
+			SDL_Surface* iconSurface = IMG_Load("../Resources/Assets/iconWindow.png");
 			if (iconSurface == nullptr) {
-				LOG("Could not load surface with path: %s. IMG_Load: %s", "../Resources/Assets/windowIcon.png", IMG_GetError());
+				LOG("Could not load surface with path: %s. IMG_Load: %s", "../Resources/Assets/iconWindow.png", IMG_GetError());
 			}
 			else {
 				SDL_SetWindowIcon(window, iconSurface);

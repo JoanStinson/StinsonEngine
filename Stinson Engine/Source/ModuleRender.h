@@ -8,6 +8,7 @@ struct SDL_Texture;
 struct SDL_Renderer;
 struct SDL_Rect;
 struct ILinfo;
+class Mesh;
 
 class ModuleRender : public Module {
 public:
@@ -25,14 +26,16 @@ public:
 	void* GetContext() const;
 
 public:
+	Mesh *mesh;
+	ILinfo *imageInfo = nullptr;
+
 	unsigned int texture;
 	unsigned int sanicTexture;
 	unsigned int blueTexture;
+	unsigned int bakeHouse;
 
 	bool drawTriangle = false;
 	bool drawSquare = true;
-
-	ILinfo *imageInfo = nullptr;
 
 private:
 	void DrawLineGrid();
@@ -42,12 +45,10 @@ private:
 	friend void __stdcall OpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
 private:
-	void* context;
-	GLuint vbo[3];
-	GLuint gProgramID = 0;
-	GLint gVertexPos2DLocation = -1;
-	GLuint gVBO = 0;
-	GLuint gIBO = 0;
+	void* context = nullptr;
+	GLuint triangleVBO;
+	GLuint squareVBO;
+	GLuint squareIBO;
 };
 
 #endif // __MODULERENDER_H__

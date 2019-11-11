@@ -2,101 +2,21 @@
 #include "Application.h"
 #include "ModuleInput.h"
 #include "ModuleWindow.h"
-#include "ModuleRender.h"
-#include <SDL.h>
+#include <SDL_events.h>
 
 bool ModuleCamera::Init() {
-	LOG("Init Camera\n");
+	LOG("Init Module Camera\n");
 	ResetCamera();
 	return true;
 }
 
 UpdateStatus ModuleCamera::Update() {
-	
 	if (App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KeyState::REPEAT) {
-		/// Translation
-		// Forward
-		if (App->input->GetKey(SDL_SCANCODE_W) == KeyState::REPEAT) {
-			frustum.Translate(math::float3(0.0F, 0.0F, movSpeed * speedScale));
-			CalculateMatrixes();
-		}
-		// Backward
-		if (App->input->GetKey(SDL_SCANCODE_S) == KeyState::REPEAT) {
-			frustum.Translate(math::float3(0.0F, 0.0F, -(movSpeed * speedScale)));
-			CalculateMatrixes();
-		}
-		// Left
-		if (App->input->GetKey(SDL_SCANCODE_A) == KeyState::REPEAT) {
-			frustum.Translate(math::float3(movSpeed * speedScale, 0.0F, 0.0F));
-			CalculateMatrixes();
-		}
-		// Right
-		if (App->input->GetKey(SDL_SCANCODE_D) == KeyState::REPEAT) {
-			frustum.Translate(math::float3(-(movSpeed * speedScale), 0.0F, 0.0F));
-			CalculateMatrixes();
-		}
-		// Down
-		if (App->input->GetKey(SDL_SCANCODE_Q) == KeyState::REPEAT) {
-			frustum.Translate(math::float3(0.0F, movSpeed * speedScale, 0.0F));
-			CalculateMatrixes();
-		}
-		// Up
-		if (App->input->GetKey(SDL_SCANCODE_E) == KeyState::REPEAT) {
-			frustum.Translate(math::float3(0.0F, -(movSpeed * speedScale), 0.0F));
-			CalculateMatrixes();
-		}
-
-		/// Rotation
-		iPoint motion = App->input->GetMouseMotion();
-		int motionOffset = 10;
-		if (abs(motion.x) > motionOffset) {
-			// Left
-			if (motion.x < 0) {
-				rotAngle += math::float3(-rotSpeed * speedScale, 0.0F, 0.0F);
-				CalculateMatrixes();
-			}
-			// Right
-			else {
-				rotAngle += math::float3(rotSpeed * speedScale, 0.0F, 0.0F);
-				CalculateMatrixes();
-			}
-		}
-		if (abs(motion.y) > motionOffset) {
-			// Down
-			if (motion.y > 0) {
-				rotAngle += math::float3(0.0F, -rotSpeed * speedScale, 0.0F);
-				CalculateMatrixes();
-			}
-			// Up
-			else {
-				rotAngle += math::float3(0.0F, rotSpeed * speedScale, 0.0F);
-				CalculateMatrixes();
-			}
-		}
+		HandleTranslation();
+		HandleRotation();
 	}
-
-	/// Zoom
-	// Forward
-	if (App->input->GetMouseWheel()->y > 0) {
-		frustum.Translate(math::float3(0.0F, 0.0F, zoomSpeed * speedScale));
-		CalculateMatrixes();
-		App->input->GetMouseWheel()->y = 0;
-	}
-	// Backward
-	if (App->input->GetMouseWheel()->y < 0) {
-		frustum.Translate(math::float3(0.0F, 0.0F, -(zoomSpeed * speedScale)));
-		CalculateMatrixes();
-		App->input->GetMouseWheel()->y = 0;
-	}
-
-	/// Speed
-	if (App->input->GetKey(SDL_SCANCODE_LSHIFT) == KeyState::REPEAT) {
-		speedScale = 3.0F;
-	}
-	if (App->input->GetKey(SDL_SCANCODE_LSHIFT) == KeyState::UP) {
-		speedScale = 1.0F;
-	}
-
+	HandleZoom();
+	speedScale = App->input->GetKey(SDL_SCANCODE_LSHIFT) == KeyState::REPEAT ? 3.0F : 1.0F;
 	return UpdateStatus::CONTINUE;
 }
 
@@ -133,9 +53,9 @@ math::float4x4 ModuleCamera::LookAt(math::float3 eye, math::float3 target, math:
 	matrix[0][0] = s.x; matrix[0][1] = s.y; matrix[0][2] = s.z;
 	matrix[1][0] = u.x; matrix[1][1] = u.y; matrix[1][2] = u.z;
 	matrix[2][0] = -f.x; matrix[2][1] = -f.y; matrix[2][2] = -f.z;
-
 	matrix[0][3] = -s.Dot(eye); matrix[1][3] = -u.Dot(eye); matrix[2][3] = f.Dot(eye);
 	matrix[3][0] = 0.0F; matrix[3][1] = 0.0F; matrix[3][2] = 0.0F; matrix[3][3] = 1.0F;
+
 	return matrix;
 }
 
@@ -157,11 +77,87 @@ void ModuleCamera::ResetCamera() {
 	frustum.pos = math::float3::zero;
 	frustum.front = -math::float3::unitZ;
 	frustum.up = math::float3::unitY;
-
 	frustum.nearPlaneDistance = 0.1F;
 	frustum.farPlaneDistance = 100.0F;
 	frustum.verticalFov = math::pi / 4.0F;
 	frustum.horizontalFov = 2.F * atanf(tanf(frustum.verticalFov * 0.5F) * aspectRatio);
 
 	CalculateMatrixes();
+}
+
+void ModuleCamera::HandleTranslation() {
+	// Forward
+	if (App->input->GetKey(SDL_SCANCODE_W) == KeyState::REPEAT) {
+		frustum.Translate(math::float3(0.0F, 0.0F, movSpeed * speedScale));
+		CalculateMatrixes();
+	}
+	// Backward
+	if (App->input->GetKey(SDL_SCANCODE_S) == KeyState::REPEAT) {
+		frustum.Translate(math::float3(0.0F, 0.0F, -(movSpeed * speedScale)));
+		CalculateMatrixes();
+	}
+	// Left
+	if (App->input->GetKey(SDL_SCANCODE_A) == KeyState::REPEAT) {
+		frustum.Translate(math::float3(movSpeed * speedScale, 0.0F, 0.0F));
+		CalculateMatrixes();
+	}
+	// Right
+	if (App->input->GetKey(SDL_SCANCODE_D) == KeyState::REPEAT) {
+		frustum.Translate(math::float3(-(movSpeed * speedScale), 0.0F, 0.0F));
+		CalculateMatrixes();
+	}
+	// Down
+	if (App->input->GetKey(SDL_SCANCODE_Q) == KeyState::REPEAT) {
+		frustum.Translate(math::float3(0.0F, movSpeed * speedScale, 0.0F));
+		CalculateMatrixes();
+	}
+	// Up
+	if (App->input->GetKey(SDL_SCANCODE_E) == KeyState::REPEAT) {
+		frustum.Translate(math::float3(0.0F, -(movSpeed * speedScale), 0.0F));
+		CalculateMatrixes();
+	}
+}
+
+void ModuleCamera::HandleRotation() {
+	iPoint motion = App->input->GetMouseMotion();
+	int motionOffset = 10;
+	if (abs(motion.x) > motionOffset) {
+		// Left
+		if (motion.x < 0) {
+			rotAngle += math::float3(-rotSpeed * speedScale, 0.0F, 0.0F);
+			CalculateMatrixes();
+		}
+		// Right
+		else {
+			rotAngle += math::float3(rotSpeed * speedScale, 0.0F, 0.0F);
+			CalculateMatrixes();
+		}
+	}
+	if (abs(motion.y) > motionOffset) {
+		// Down
+		if (motion.y > 0) {
+			rotAngle += math::float3(0.0F, -rotSpeed * speedScale, 0.0F);
+			CalculateMatrixes();
+		}
+		// Up
+		else {
+			rotAngle += math::float3(0.0F, rotSpeed * speedScale, 0.0F);
+			CalculateMatrixes();
+		}
+	}
+}
+
+void ModuleCamera::HandleZoom() {
+	// Forward
+	if (App->input->GetMouseWheel()->y > 0) {
+		frustum.Translate(math::float3(0.0F, 0.0F, zoomSpeed * speedScale));
+		CalculateMatrixes();
+		App->input->GetMouseWheel()->y = 0;
+	}
+	// Backward
+	if (App->input->GetMouseWheel()->y < 0) {
+		frustum.Translate(math::float3(0.0F, 0.0F, -(zoomSpeed * speedScale)));
+		CalculateMatrixes();
+		App->input->GetMouseWheel()->y = 0;
+	}
 }

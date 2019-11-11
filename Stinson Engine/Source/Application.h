@@ -13,7 +13,7 @@ class ModuleProgram;
 class ModuleUI;
 class ModuleTextures;
 class ModuleCamera;
-//class ModuleModelLoader;
+class ModuleModelLoader;
 
 class Application {
 public:
@@ -36,7 +36,7 @@ public:
 	ModuleUI* interfaces = nullptr;
 	ModuleTextures* textures = nullptr;
 	ModuleCamera* camera = nullptr;
-	//ModuleModelLoader* model = nullptr;
+	ModuleModelLoader* model = nullptr;
 
 private:
 	std::list<Module*> modules;

@@ -29,15 +29,19 @@ public:
 	float movSpeed;
 	float rotSpeed;
 	float zoomSpeed;
-	float aspectRatio = (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT;
+	float aspectRatio;
+
+private:
+	void HandleTranslation();
+	void HandleRotation();
+	void HandleZoom();
 
 private:
 	math::float4x4 model;
 	math::float4x4 view;
 	math::float4x4 proj;
-
+	math::float3 rotAngle;
 	float speedScale;
-	math::float3 rotAngle = math::float3::zero;
 };
 
 #endif // __MODULECAMERA_H__

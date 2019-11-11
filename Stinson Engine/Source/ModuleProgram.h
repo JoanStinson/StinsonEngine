@@ -2,21 +2,22 @@
 #define __MODULEPROGRAM_H__
 
 #include "Module.h"
-#include <string>
 
 class ModuleProgram : public Module {
 public:
-	ModuleProgram(){}
-	~ModuleProgram(){}
+	ModuleProgram();
+	~ModuleProgram();
 
 	bool Init() override;
 	bool CleanUp() override;
 
 public:
-	unsigned int def_program;
+	unsigned *textureProgram = nullptr;
+	unsigned *gridLinesProgram = nullptr;
 
 private:
-	void CheckCompileErrors(unsigned int shader, const std::string &type) const;
+	unsigned LoadShader(const char* vertexFile, const char* fragmentFile);
+	void CheckCompileErrors(unsigned int shader, const char *type) const;
 };
 
 #endif // __MODULEPROGRAM_H__ 

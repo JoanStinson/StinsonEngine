@@ -20,46 +20,32 @@ ModuleInput::~ModuleInput() {
 }
 
 bool ModuleInput::Init() {
-	LOG("Init SDL input event system\n");
+	LOG("Init Module Input\n");
 	bool ret = true;
 	SDL_Init(0);
-
 	if (SDL_InitSubSystem(SDL_INIT_EVENTS) < 0) {
 		LOG("SDL_EVENTS could not initialize! SDL_Error: %s\n", SDL_GetError());
 		ret = false;
 	}
-
 	return ret;
 }
 
 UpdateStatus ModuleInput::PreUpdate() {
-
 	static SDL_Event event;
 
-	mouseMotion = { 0, 0 };
 	memset(windowEvents, false, (int)EventWindow::COUNT * sizeof(bool));
 
 	const Uint8* keys = SDL_GetKeyboardState(nullptr);
 
 	for (int i = 0; i < MAX_KEYS; ++i) {
-		if (keys[i] == 1) {
-			if (keyboard[i] == KeyState::IDLE)
-				keyboard[i] = KeyState::DOWN;
-			else
-				keyboard[i] = KeyState::REPEAT;
-		}
-		else {
-			if (keyboard[i] == KeyState::REPEAT || keyboard[i] == KeyState::DOWN)
-				keyboard[i] = KeyState::UP;
-			else
-				keyboard[i] = KeyState::IDLE;
-		}
+		keys[i] == 1 ?
+			(keyboard[i] = (keyboard[i] == KeyState::IDLE) ? KeyState::DOWN : KeyState::REPEAT) :
+			(keyboard[i] = (keyboard[i] == KeyState::REPEAT || keyboard[i] == KeyState::DOWN) ? KeyState::UP : KeyState::IDLE);
 	}
 
 	for (int i = 0; i < NUM_MOUSE_BUTTONS; ++i) {
 		if (mouseButtons[i] == KeyState::DOWN)
 			mouseButtons[i] = KeyState::REPEAT;
-
 		if (mouseButtons[i] == KeyState::UP)
 			mouseButtons[i] = KeyState::IDLE;
 	}

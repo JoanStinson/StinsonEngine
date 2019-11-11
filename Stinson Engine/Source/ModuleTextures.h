@@ -16,8 +16,9 @@ public:
 	bool CleanUp() override;
 
 public:
-	GLuint Load(const char *file, ILinfo *imageInfo);
-	GLuint Load(const char *file, ILinfo *imageInfo, GLuint wrap, bool filterNearest, bool useMipMaps);
+	GLuint Load(const char *filename);
+	GLuint Load(const char *filename, ILinfo *imageInfo);
+	GLuint Load(const char *filename, ILinfo *imageInfo, GLuint wrap, bool filterNearest, bool useMipMaps);
 };
 
 #endif // __MODULETEXTURES_H__

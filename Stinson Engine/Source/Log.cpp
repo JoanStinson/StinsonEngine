@@ -45,7 +45,7 @@ void DrawLogText(const std::vector<std::string> &strLines, int index) {
 }
 
 void DrawConsoleLog(bool *p_open) {
-	static bool coloredText = false;
+	static bool coloredText = true;
 	static bool hasCleared = false;
 	static bool collapse = false;
 	static std::vector<std::string> strLines;
@@ -108,7 +108,7 @@ void DrawConsoleLog(bool *p_open) {
 				}
 				previousLines.push_back(strLines[i]);
 			}
-			if (!hasCleared) strLines.erase(strLines.begin() + 21, strLines.end());
+			if (!hasCleared) strLines.erase(strLines.begin() + 30, strLines.end());
 			else strLines.clear();
 		}
 		else {

@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
 			break;
 
 		case MainStatus::START:
-			LOG("-------------- Application Init --------------\n");
+			LOG("--------------   Application Init   --------------\n");
 			if (App->Init() == false) {
 				LOG("----- Application Init exits with error -----\n");
 				state = MainStatus::EXIT;
