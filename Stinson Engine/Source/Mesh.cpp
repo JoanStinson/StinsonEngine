@@ -9,11 +9,13 @@ Mesh::Mesh(const char *filename, unsigned texture, unsigned program) : texture(t
 	Assimp::Importer importer;
 	const aiScene *scene = importer.ReadFile(filename, 0);
 	if (scene == nullptr) {
-		LOG("Unable to load mesh: %s\n", importer.GetErrorString());
+		LOG("Unable to load mesh %s\n", importer.GetErrorString());
 	}
 	else {
+		LOG("Loaded file path of mesh '%s' \n", filename);
 		for (int i = 0; i < scene->mNumMeshes; ++i) 
 			meshEntries.push_back(new Mesh::Vertex(scene->mMeshes[i]));
+		LOG("Loaded mesh correctly!\n");
 	}
 }
 
@@ -54,6 +56,7 @@ Mesh::Vertex::Vertex(aiMesh *mesh) {
 
 	elementCount = mesh->mNumFaces * 3;
 
+	LOG("Checking meshes positions\n");
 	if (mesh->HasPositions()) {
 		float *vertices = new float[mesh->mNumVertices * 3];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -71,7 +74,10 @@ Mesh::Vertex::Vertex(aiMesh *mesh) {
 
 		delete[] vertices;
 	}
+	else 
+		LOG("Mesh has no positions!\n");
 
+	LOG("Checking meshes texture coords\n");
 	if (mesh->HasTextureCoords(0)) {
 		float *texCoords = new float[mesh->mNumVertices * 2];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -88,6 +94,8 @@ Mesh::Vertex::Vertex(aiMesh *mesh) {
 
 		delete[] texCoords;
 	}
+	else 
+		LOG("Mesh has no texture coords!\n");
 
 	if (mesh->HasNormals()) {
 		float *normals = new float[mesh->mNumVertices * 3];

@@ -60,16 +60,14 @@ math::float4x4 ModuleCamera::LookAt(math::float3 eye, math::float3 target, math:
 }
 
 void ModuleCamera::CalculateMatrixes() {
-	//TODO cambiar rotAngle per matriu de rotacio
-	// math::float4x4 = math::floatRotateX(x) * math::floatRotateY(x) * math::floatRotateZ(x)
 	model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
-	view = LookAt(math::float3(0.0F, 1.F, 4.0F), rotAngle, math::float3::unitY); 
+	view = LookAt(math::float3(0.0F, 1.F, 4.0F), math::float3::zero, math::float3::unitY);
 	proj = frustum.ProjectionMatrix();
 }
 
 void ModuleCamera::ResetCamera() {
 	movSpeed = 0.2F;
-	rotSpeed = 0.4F;
+	rotSpeed = 0.1F;
 	zoomSpeed = 0.4F;
 	speedScale = 1.0F;
 	aspectRatio = (float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight();
@@ -84,7 +82,9 @@ void ModuleCamera::ResetCamera() {
 	frustum.verticalFov = math::pi / 4.0F;
 	frustum.horizontalFov = 2.F * atanf(tanf(frustum.verticalFov * 0.5F) * aspectRatio);
 
-	CalculateMatrixes();
+	model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
+	view = LookAt(math::float3(0.0F, 1.F, 4.0F), math::float3::zero, math::float3::unitY);
+	proj = frustum.ProjectionMatrix();
 }
 
 void ModuleCamera::HandleTranslation() {
@@ -122,29 +122,40 @@ void ModuleCamera::HandleTranslation() {
 
 void ModuleCamera::HandleRotation() {
 	iPoint motion = App->input->GetMouseMotion();
-	int motionOffset = 10;
+	int motionOffset = 20;
+
 	if (abs(motion.x) > motionOffset) {
+		rotAngle.x = 0;
+		rotAngle.y = rotSpeed * speedScale;
+
 		// Left
 		if (motion.x < 0) {
-			rotAngle += math::float3(-rotSpeed * speedScale, 0.0F, 0.0F);
-			CalculateMatrixes();
+			model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
+			view = view * (math::float4x4::RotateX(rotAngle.x) * math::float4x4::RotateY(-rotAngle.y) * math::float4x4::RotateZ(rotAngle.z));
+			proj = frustum.ProjectionMatrix();
 		}
 		// Right
 		else {
-			rotAngle += math::float3(rotSpeed * speedScale, 0.0F, 0.0F);
-			CalculateMatrixes();
+			model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
+			view = view * (math::float4x4::RotateX(rotAngle.x) * math::float4x4::RotateY(rotAngle.y) * math::float4x4::RotateZ(rotAngle.z));
+			proj = frustum.ProjectionMatrix();
 		}
 	}
 	if (abs(motion.y) > motionOffset) {
+		rotAngle.y = 0;
+		rotAngle.x = rotSpeed * speedScale;
+
 		// Down
 		if (motion.y > 0) {
-			rotAngle += math::float3(0.0F, -rotSpeed * speedScale, 0.0F);
-			CalculateMatrixes();
+			model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
+			view = view * (math::float4x4::RotateX(rotAngle.x) * math::float4x4::RotateY(-rotAngle.y) * math::float4x4::RotateZ(rotAngle.z));
+			proj = frustum.ProjectionMatrix();
 		}
 		// Up
 		else {
-			rotAngle += math::float3(0.0F, rotSpeed * speedScale, 0.0F);
-			CalculateMatrixes();
+			model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
+			view = view * (math::float4x4::RotateX(-rotAngle.x) * math::float4x4::RotateY(-rotAngle.y) * math::float4x4::RotateZ(rotAngle.z));
+			proj = frustum.ProjectionMatrix();
 		}
 	}
 }

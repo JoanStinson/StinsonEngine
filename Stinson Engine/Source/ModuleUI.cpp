@@ -128,39 +128,39 @@ UpdateStatus ModuleUI::DrawMainBar() {
 
 			if (ImGui::BeginMenu("Image")) {
 				if (ImGui::Checkbox("Sonic", &showSanicTexture)) {
-					App->renderer->texture = App->textures->Load("../Resources/Assets/sonic.png", App->renderer->imageInfo);
+					//App->renderer->texture = App->textures->Load("../Resources/Assets/sonic.png", App->renderer->imageInfo);
 				}
 				if (ImGui::Checkbox("Butterflies", &showButterfliesTexture)) {
-					App->renderer->texture = App->textures->Load("../Resources/Assets/butterflies.jpg", App->renderer->imageInfo);
+					//App->renderer->texture = App->textures->Load("../Resources/Assets/butterflies.jpg", App->renderer->imageInfo);
 				}
 				if (ImGui::Checkbox("Link", &showLinkTexture)) {
-					App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo);
+					//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo);
 				}
 				ImGui::EndMenu();
 			}
 
 			if (ImGui::BeginMenu("Wrapping Mode")) {
 				if (ImGui::Checkbox("Repeat", &showRepeat)) {
-					if (showRepeat)
-						App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 1, 0, true);
+					//if (showRepeat)
+						//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 1, 0, true);
 				}
 				ImGui::SameLine();
 				HelpMarker("Repeats the texture image");
 				if (ImGui::Checkbox("Mirrored Repeat", &showMirroredRepeat)) {
-					if (showMirroredRepeat)
-						App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 2, 0, true);
+					//if (showMirroredRepeat)
+						//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 2, 0, true);
 				}
 				ImGui::SameLine();
 				HelpMarker("Same as repeat, but mirrors the image with each repeat");
 				if (ImGui::Checkbox("Clamp to Edge", &showClampToEdge)) {
-					if (showClampToEdge)
-						App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 3, 0, true);
+					//if (showClampToEdge)
+						//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 3, 0, true);
 				}
 				ImGui::SameLine();
 				HelpMarker("Clamps the coordinates between 0 and 1. The result is that higher coordinates become clamped to the edge, resulting in a stretched edge pattern");
 				if (ImGui::Checkbox("Clamp to Border", &showClampToBorder)) {
-					if (showClampToBorder)
-						App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, true);
+					//if (showClampToBorder)
+						//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, true);
 				}
 				ImGui::SameLine();
 				HelpMarker("Coordinates outside the range are now given a user-specified border color");
@@ -169,14 +169,14 @@ UpdateStatus ModuleUI::DrawMainBar() {
 
 			if (ImGui::BeginMenu("Filtering Mode")) {
 				if (ImGui::Checkbox("Nearest", &showNearest)) {
-					if (showNearest)
-						App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 1, false);
+					//if (showNearest)
+						//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 1, false);
 				}
 				ImGui::SameLine();
 				HelpMarker("OpenGL selects the pixel which center is closest to the texture coordinate");
 				if (ImGui::Checkbox("Linear", &showLinear)) {
-					if (showLinear)
-						App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, false);
+					//if (showLinear)
+						//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, false);
 				}
 				ImGui::SameLine();
 				HelpMarker("Takes an interpolated value from the texture coordinate's neighboring texels, approximating a color between the texels");
@@ -185,8 +185,8 @@ UpdateStatus ModuleUI::DrawMainBar() {
 
 			if (ImGui::BeginMenu("Mipmaps", &showMipMaps)) {
 				if (ImGui::Checkbox("Yes", &showMipMaps)) {
-					if (showMipMaps)
-						App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, true);
+					//if (showMipMaps)
+						//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, true);
 				}
 				ImGui::SameLine();
 				HelpMarker("After a certain distance threshold from the viewer, OpenGL will use a different mipmap texture that best suits the distance to the object. Because the object is far away, the smaller resolution will not be noticeable to the user. Also, mipmaps have the added bonus feature that they're good for performance as well.");
@@ -367,7 +367,7 @@ void ModuleUI::DrawConfigWindow(bool *p_open) {
 		}
 
 		if (ImGui::Button("Change Model")) {
-			App->model->ChangeMesh(0, "../Resources/Assets/samus.obj", App->textures->Load("../Resources/Assets/samus.png"), *App->programs->textureProgram);
+			//App->model->ChangeMesh(0, "../Resources/Assets/samus.obj", App->textures->Load("../Resources/Assets/samus.png"), *App->programs->textureProgram);
 		}
 	}
 	ImGui::End();

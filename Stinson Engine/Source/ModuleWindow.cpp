@@ -34,9 +34,9 @@ bool ModuleWindow::Init() {
 			screen_surface = SDL_GetWindowSurface(window);
 
 			// Set window icon
-			SDL_Surface* iconSurface = IMG_Load("../Resources/Assets/iconWindow.png");
+			SDL_Surface* iconSurface = IMG_Load("../Resources/Assets/Sprites/WindowIcon.png");
 			if (iconSurface == nullptr) {
-				LOG("Could not load surface with path: %s. IMG_Load: %s", "../Resources/Assets/iconWindow.png", IMG_GetError());
+				LOG("Could not load surface with path: %s. IMG_Load: %s", "../Resources/Assets/Sprites/WindowIcon.png", IMG_GetError());
 			}
 			else {
 				SDL_SetWindowIcon(window, iconSurface);

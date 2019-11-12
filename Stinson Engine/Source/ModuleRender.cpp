@@ -90,7 +90,7 @@ bool ModuleRender::Init() {
 	imageInfo = new ILinfo();
 	imageInfo->Width = 1;
 	imageInfo->Height = 1;
-	texture = App->textures->Load("../Resources/Assets/butterflies.jpg", imageInfo);
+	//texture = App->textures->Load("../Resources/Assets/butterflies.jpg", imageInfo);
 
 	return true;
 }
@@ -107,37 +107,37 @@ UpdateStatus ModuleRender::Update() {
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
 
-	if (drawTriangle) {
-		// Triangle
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, triangleVBO);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		glDisableVertexAttribArray(0);
+	//if (drawTriangle) {
+	//	// Triangle
+	//	glEnableVertexAttribArray(0);
+	//	glBindBuffer(GL_ARRAY_BUFFER, triangleVBO);
+	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	//	glDrawArrays(GL_TRIANGLES, 0, 3);
+	//	glDisableVertexAttribArray(0);
 
-		// Triangle Texture
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 3 * 3));
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glUniform1i(glGetUniformLocation(*App->programs->textureProgram, "texture0"), 0);
-	}
-	else if (drawSquare) {
-		// Square
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareIBO);
-		glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, nullptr);
-		glDisableVertexAttribArray(0);
+	//	// Triangle Texture
+	//	glEnableVertexAttribArray(1);
+	//	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 3 * 3));
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, texture);
+	//	glUniform1i(glGetUniformLocation(*App->programs->textureProgram, "texture0"), 0);
+	//}
+	//else if (drawSquare) {
+	//	// Square
+	//	glEnableVertexAttribArray(0);
+	//	glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
+	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+	//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareIBO);
+	//	glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, nullptr);
+	//	glDisableVertexAttribArray(0);
 
-		// Square Texture
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 3 * 4));
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glUniform1i(glGetUniformLocation(*App->programs->textureProgram, "texture0"), 0);
-	}
+	//	// Square Texture
+	//	glEnableVertexAttribArray(1);
+	//	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 3 * 4));
+	//	glActiveTexture(GL_TEXTURE0);
+	//	glBindTexture(GL_TEXTURE_2D, texture);
+	//	glUniform1i(glGetUniformLocation(*App->programs->textureProgram, "texture0"), 0);
+	//}
 
 	// Draw Grid Lines
 	glUseProgram(*App->programs->gridLinesProgram);

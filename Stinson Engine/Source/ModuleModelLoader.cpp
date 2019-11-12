@@ -12,11 +12,11 @@ ModuleModelLoader::~ModuleModelLoader() {
 bool ModuleModelLoader::Init() {
 	LOG("Init Model Loader\n");
 
-	Mesh *bakeHouse = new Mesh ("../Resources/Assets/BakerHouse.fbx", App->textures->Load("../Resources/Assets/BakerHouse.png"), *App->programs->textureProgram);
-	meshes.push_back(bakeHouse);
+	Mesh *bakerHouse = new Mesh ("../Resources/Assets/Models/BakerHouse.fbx", App->textures->Load("../Resources/Assets/Textures/BakerHouse.dds"), *App->programs->textureProgram);
+	meshes.push_back(bakerHouse);
 
-	//Mesh *samus = new Mesh("../Resources/Assets/samus.obj", App->textures->Load("../Resources/Assets/samus.png"), *App->programs->textureProgram);
-	//meshes.push_back(samus);
+	Mesh *mario = new Mesh("../Resources/Assets/Models/Mario.fbx", App->textures->Load("../Resources/Assets/Textures/Mario.dds"), *App->programs->textureProgram);
+	meshes.push_back(mario);
 	return true;
 }
 
