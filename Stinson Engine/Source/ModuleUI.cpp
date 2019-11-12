@@ -366,8 +366,11 @@ void ModuleUI::DrawConfigWindow(bool *p_open) {
 			ImGui::TextColored(YELLOW, "%s", glGetString(GL_VERSION));
 		}
 
-		if (ImGui::Button("Change Model")) {
-			//App->model->ChangeMesh(0, "../Resources/Assets/samus.obj", App->textures->Load("../Resources/Assets/samus.png"), *App->programs->textureProgram);
+		//if (ImGui::Button("Change Model")) {
+		//	//App->model->ChangeMesh(0, "../Resources/Assets/samus.obj", App->textures->Load("../Resources/Assets/samus.png"), *App->programs->textureProgram);
+		//}
+		if (ImGui::Button("Checkers Texture")) {
+			App->model->ChangeTexture(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg"));
 		}
 	}
 	ImGui::End();

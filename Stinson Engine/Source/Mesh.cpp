@@ -5,16 +5,16 @@
 #include <postprocess.h>
 #include <scene.h>
 
-Mesh::Mesh(const char *filename, unsigned texture, unsigned program) : texture(texture), program(program) {
+Mesh::Mesh(const char *filename, unsigned int texture, unsigned int program) : filename(filename), texture(texture), program(program) {
 	Assimp::Importer importer;
-	const aiScene *scene = importer.ReadFile(filename, 0);
+	const aiScene *scene = importer.ReadFile(filename, aiProcessPreset_TargetRealtime_MaxQuality);
 	if (scene == nullptr) {
 		LOG("Unable to load mesh %s\n", importer.GetErrorString());
 	}
 	else {
-		LOG("Loaded file path of mesh '%s' \n", filename);
+		LOG("Loaded aiScene from file '%s' \n", filename);
 		for (int i = 0; i < scene->mNumMeshes; ++i) 
-			meshEntries.push_back(new Mesh::Vertex(scene->mMeshes[i]));
+			meshEntries.push_back(new Mesh::MeshEntry(scene->mMeshes[i]));
 		LOG("Loaded mesh correctly!\n");
 	}
 }
@@ -35,7 +35,7 @@ void Mesh::Render() {
 		meshEntries[i]->Render();
 }
 
-void Mesh::Render(unsigned meshTexture, unsigned meshProgram) {
+void Mesh::Render(unsigned int meshTexture, unsigned int meshProgram) {
 	glUseProgram(meshProgram);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, meshTexture);
@@ -45,7 +45,7 @@ void Mesh::Render(unsigned meshTexture, unsigned meshProgram) {
 		meshEntries[i]->Render();
 }
 
-Mesh::Vertex::Vertex(aiMesh *mesh) {
+Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
 	vbo[(int)BUFFER::VERTEX] = 0;
 	vbo[(int)BUFFER::TEXCOORD] = 0;
 	vbo[(int)BUFFER::NORMAL] = 0;
@@ -56,7 +56,7 @@ Mesh::Vertex::Vertex(aiMesh *mesh) {
 
 	elementCount = mesh->mNumFaces * 3;
 
-	LOG("Checking meshes positions\n");
+	LOG("Checking mesh positions\n");
 	if (mesh->HasPositions()) {
 		float *vertices = new float[mesh->mNumVertices * 3];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -77,7 +77,7 @@ Mesh::Vertex::Vertex(aiMesh *mesh) {
 	else 
 		LOG("Mesh has no positions!\n");
 
-	LOG("Checking meshes texture coords\n");
+	LOG("Checking mesh texture coords\n");
 	if (mesh->HasTextureCoords(0)) {
 		float *texCoords = new float[mesh->mNumVertices * 2];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -97,6 +97,7 @@ Mesh::Vertex::Vertex(aiMesh *mesh) {
 	else 
 		LOG("Mesh has no texture coords!\n");
 
+	LOG("Checking mesh normals\n");
 	if (mesh->HasNormals()) {
 		float *normals = new float[mesh->mNumVertices * 3];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -114,7 +115,10 @@ Mesh::Vertex::Vertex(aiMesh *mesh) {
 
 		delete[] normals;
 	}
+	else
+		LOG("Mesh has no normals!\n");
 
+	LOG("Checking mesh faces\n");
 	if (mesh->HasFaces()) {
 		unsigned int *indices = new unsigned int[mesh->mNumFaces * 3];
 		for (int i = 0; i < mesh->mNumFaces; ++i) {
@@ -132,12 +136,14 @@ Mesh::Vertex::Vertex(aiMesh *mesh) {
 
 		delete[] indices;
 	}
+	else
+		LOG("Mesh has no faces!\n");
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
-Mesh::Vertex::~Vertex() {
+Mesh::MeshEntry::~MeshEntry() {
 	if (vbo[(int)BUFFER::VERTEX]) {
 		glDeleteBuffers(1, &vbo[(int)BUFFER::VERTEX]);
 	}
@@ -153,7 +159,7 @@ Mesh::Vertex::~Vertex() {
 	glDeleteVertexArrays(1, &vao);
 }
 
-void Mesh::Vertex::Render() {
+void Mesh::MeshEntry::Render() {
 	glBindVertexArray(vao);
 	glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);

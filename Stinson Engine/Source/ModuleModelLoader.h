@@ -18,7 +18,8 @@ public:
 	bool CleanUp() override;
 
 public:
-	void ChangeMesh(int index, const char *filename, unsigned texture, unsigned program);
+	void ChangeMesh(const char *filename, int index = 0);
+	void ChangeTexture(unsigned int texture, int index = 0);
 	void RenderAllMeshes();
 
 private:

@@ -4,7 +4,10 @@
 #include "ModuleWindow.h"
 #include "ModuleCamera.h"
 #include "ModuleRender.h"
+#include "ModuleTextures.h"
+#include "ModuleModelLoader.h"
 #include <SDL.h>
+#include <string>
 
 #define MAX_KEYS 300
 
@@ -106,9 +109,10 @@ UpdateStatus ModuleInput::PreUpdate() {
 			break;
 
 		case SDL_DROPFILE:
-			//TODO drag and drop
-			//char *droppedFile = event.drop.file;
-			//App->model->ChangeMesh(0, droppedFile, App->textures->Load("../Resources/Assets/samus.png"), *App->programs->textureProgram);
+			const char* droppedFile = event.drop.file;
+			std::string type = std::string(droppedFile).substr(std::string(droppedFile).length() - 3);
+			type == "fbx" ? App->model->ChangeMesh(droppedFile) : 
+				type == "dds" || type == "jpg" || type == "png" ? App->model->ChangeTexture(App->textures->Load(droppedFile)) : LOG("Incorrect format of dropped file!\n");
 			break;
 		}
 	}

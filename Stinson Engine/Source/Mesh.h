@@ -8,15 +8,15 @@ typedef unsigned int GLuint;
 
 class Mesh {
 public:
-	Mesh(const char *filename, unsigned texture, unsigned program);
+	Mesh(const char *filename, unsigned int texture, unsigned int program);
 	~Mesh();
 	void Render();
-	void Render(unsigned meshTexture, unsigned meshProgram);
+	void Render(unsigned int meshTexture, unsigned int meshProgram);
 
 public:
-	struct Vertex {
-		Vertex(aiMesh *mesh);
-		~Vertex();
+	struct MeshEntry {
+		MeshEntry(aiMesh *mesh);
+		~MeshEntry();
 		void Render();
 
 		GLuint vao;
@@ -25,11 +25,12 @@ public:
 		enum class BUFFER { VERTEX, TEXCOORD, NORMAL, INDEX };
 	};
 
+	const char *filename = nullptr;
 	unsigned int texture;
 	unsigned int program;
 
 private:
-	std::vector<Vertex*> meshEntries;
+	std::vector<MeshEntry*> meshEntries;
 };
 
 #endif // __MESH_H__
