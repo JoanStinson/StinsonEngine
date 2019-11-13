@@ -10,8 +10,8 @@ union SDL_Event;
 //TODO imgui texture of camera to window, use frame buffer
 class ModuleUI : public Module {
 public:
-	ModuleUI(){}
-	~ModuleUI(){}
+	ModuleUI() {}
+	~ModuleUI() {}
 
 	bool Init() override;
 	bool Start() override;
@@ -26,7 +26,15 @@ public:
 private:
 	UpdateStatus DrawMainBar();
 	void DrawConfigWindow(bool *p_open);
+	void DrawPropertiesWindow(bool *p_open);
 	void DrawAboutWindow(bool *p_open);
+
+	void DrawCameraHeader();
+	void DrawHardwareHeader();
+	void DrawPerformanceHeader();
+	void DrawTexturesHeader();
+	void DrawWindowHeader();
+
 	void DrawLogFrames(std::vector<float> &frames, float value, char *titleBuf, int titleSize, const char *title, const char *histogramTitle, float maxHeight, unsigned int &time);
 	void HelpMarker(const char *desc, bool showText = true) const;
 	void RequestBrowser(const char *link) const;
@@ -34,8 +42,9 @@ private:
 private:
 	ImGuiIO io;
 
-	bool showConsoleLogWindow = false;
+	bool showConsoleLogWindow = true;
 	bool showConfigWindow = true;
+	bool showPropertiesWindow = false;
 	bool showDemoWindow = false;
 	bool showAboutWindow = false;
 	bool fullscreen = false;
@@ -57,7 +66,12 @@ private:
 	bool showMipMaps = true;
 
 	char engineName[40] = TITLE;
-	char description[140] = "3D engine for UPC master's degree.";
+	char version[12] = "1.0.0";
+	const char* description = "A 3D engine using C++ with OpenGL that tries\n"
+		"to mimic Unity's functionalities. It's a project\n"
+		"developed for the master's degree of Advanced\n"
+		"Programming for AAA Video Games at the UPC\n"
+		"School (Polytechnic University of Catalonia).";
 	char author[25] = "Joan Ginard";
 	char fpsTitle[24];
 	char msTitle[24];

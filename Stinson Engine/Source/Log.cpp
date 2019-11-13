@@ -44,7 +44,7 @@ void DrawLogText(const std::vector<std::string> &strLines, int index) {
 	}
 }
 
-void DrawConsoleLog(bool *p_open) {
+void DrawConsoleLogWindow(bool *p_open) {
 	static bool coloredText = false;
 	static bool hasCleared = false;
 	static bool collapse = false;
