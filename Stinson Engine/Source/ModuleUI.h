@@ -3,6 +3,8 @@
 
 #include "Module.h"
 #include "../Libraries/ImGui/imgui.h"
+#include "../Libraries/ImGui/imgui_impl_sdl.h"
+#include "../Libraries/ImGui/imgui_impl_opengl3.h"
 #include <vector>
 
 union SDL_Event;
@@ -25,6 +27,7 @@ public:
 
 private:
 	UpdateStatus DrawMainBar();
+	void DrawSceneWindow(bool *p_open);
 	void DrawConfigWindow(bool *p_open);
 	void DrawPropertiesWindow(bool *p_open);
 	void DrawAboutWindow(bool *p_open);
@@ -40,8 +43,10 @@ private:
 	void RequestBrowser(const char *link) const;
 
 private:
-	ImGuiIO io;
+	ImGuiIO* io = nullptr;
+	ImGuiID dockspaceID = 0;
 
+	bool showSceneWindow = true;
 	bool showConsoleLogWindow = true;
 	bool showConfigWindow = true;
 	bool showPropertiesWindow = false;

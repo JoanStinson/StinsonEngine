@@ -12,8 +12,9 @@ public:
 	bool CleanUp() override;
 
 public:
-	unsigned *textureProgram = nullptr;
-	unsigned *gridLinesProgram = nullptr;
+	unsigned int *textureProgram = nullptr;
+	unsigned int *gridLinesProgram = nullptr;
+	unsigned int *screenProgram = nullptr;
 
 private:
 	unsigned LoadShader(const char* vertexFile, const char* fragmentFile);

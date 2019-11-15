@@ -3,13 +3,15 @@
 #include <assert.h>
 
 ModuleProgram::ModuleProgram() {
-	textureProgram = new unsigned();
-	gridLinesProgram = new unsigned();
+	textureProgram = new unsigned int();
+	gridLinesProgram = new unsigned int();
+	screenProgram = new unsigned int();
 }
 
 ModuleProgram::~ModuleProgram() {
 	delete textureProgram;
 	delete gridLinesProgram;
+	delete screenProgram;
 }
 
 bool ModuleProgram::Init() {
@@ -18,6 +20,8 @@ bool ModuleProgram::Init() {
 	assert(textureProgram != nullptr);
 	*gridLinesProgram = LoadShader("../Resources/Shaders/gridLines.vs", "../Resources/Shaders/gridLines.fs");
 	assert(gridLinesProgram != nullptr);
+	*screenProgram = LoadShader("../Resources/Shaders/screenFbo.vs", "../Resources/Shaders/screenFbo.fs");
+	assert(screenProgram != nullptr);
 	return true;
 }
 

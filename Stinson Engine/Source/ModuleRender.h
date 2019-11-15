@@ -22,8 +22,11 @@ public:
 	bool CleanUp() override;
 
 public:
-	void WindowResized(unsigned width, unsigned height) const;
+	void WindowResized(unsigned int width, unsigned int height);
 	void* GetContext() const;
+
+public:
+	unsigned int textureColorbuffer;
 
 private:
 	void DrawLineGrid();
@@ -37,6 +40,9 @@ private:
 	GLuint triangleVBO;
 	GLuint squareVBO;
 	GLuint squareIBO;
+	unsigned int framebuffer;
+	unsigned int rbo;
+	unsigned int quadVAO;
 };
 
 #endif // __MODULERENDER_H__

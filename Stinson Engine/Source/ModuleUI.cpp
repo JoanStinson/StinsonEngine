@@ -12,8 +12,6 @@
 #include <ilu.h>
 #include <ilut.h>
 #include <glew.h>
-#include "../Libraries/ImGui/imgui_impl_sdl.h"
-#include "../Libraries/ImGui/imgui_impl_opengl3.h"
 
 #define RED ImVec4(1.0F, 0.0F, 0.0F, 1.0F)
 #define GREEN ImVec4(0.0F, 1.0F, 0.0F, 1.0F)
@@ -26,10 +24,12 @@ bool ModuleUI::Init() {
 	LOG("Init Module UI\n");
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io = new ImGuiIO();
+	*io = ImGui::GetIO();
+	io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io->ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	ImGui::StyleColorsDark();
 	ImGui_ImplSDL2_InitForOpenGL(App->window->window, App->renderer->GetContext());
 	ImGui_ImplOpenGL3_Init("#version 430 core");
@@ -62,6 +62,9 @@ UpdateStatus ModuleUI::Update() {
 
 	UpdateStatus ret = DrawMainBar();
 
+	if (showSceneWindow)
+		DrawSceneWindow(&showSceneWindow);
+
 	if (showConfigWindow)
 		DrawConfigWindow(&showConfigWindow);
 
@@ -82,7 +85,7 @@ UpdateStatus ModuleUI::Update() {
 
 UpdateStatus ModuleUI::PostUpdate() {
 	ImGui::Render();
-	glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
+	glViewport(0, 0, io->DisplaySize.x, io->DisplaySize.y);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	SDL_GL_SwapWindow(App->window->window);
 	return UpdateStatus::CONTINUE;
@@ -92,6 +95,7 @@ bool ModuleUI::CleanUp() {
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplSDL2_Shutdown();
 	ImGui::DestroyContext();
+	delete io;
 	return true;
 }
 
@@ -103,6 +107,7 @@ UpdateStatus ModuleUI::DrawMainBar() {
 	ImGui::BeginMainMenuBar();
 
 	if (ImGui::BeginMenu("File")) {
+		ImGui::CheckboxFlags("io.ConfigFlags: DockingEnable", (unsigned int *)&io->ConfigFlags, ImGuiConfigFlags_DockingEnable);
 		if (ImGui::MenuItem("Quit", "Escape"))
 			return UpdateStatus::STOP;
 		ImGui::EndMenu();
@@ -112,6 +117,7 @@ UpdateStatus ModuleUI::DrawMainBar() {
 		ImGui::MenuItem("Configuration", "Ctrl+Alt+C", &showConfigWindow);
 		ImGui::MenuItem("Console", "Ctrl+Shift+C", &showConsoleLogWindow);
 		ImGui::MenuItem("Properties", "Ctrl+Shift+P", &showPropertiesWindow);
+		ImGui::MenuItem("Scene", "Ctrl+Shift+S", &showSceneWindow);
 		ImGui::EndMenu();
 	}
 
@@ -135,24 +141,51 @@ UpdateStatus ModuleUI::DrawMainBar() {
 	return UpdateStatus::CONTINUE;
 }
 
+void ModuleUI::DrawSceneWindow(bool *p_open) {
+
+	//static ImGuiID dockspaceID = 0;
+	//bool active = true;
+	//if (ImGui::Begin("Master Window", &active, ImGuiDockNodeFlags_PassthruCentralNode)) {
+	//	ImGui::TextUnformatted("DockSpace below");
+	//}
+	//if (active) {
+	//	dockspaceID = ImGui::GetID("HUB_1ockSpace");
+	//	ImGui::DockSpace(dockspaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None | ImGuiDockNodeFlags_PassthruCentralNode/*|ImGuiDockNodeFlags_NoResize*/);
+	//}
+	//ImGui::End();
+
+	//ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
+	//if (ImGui::Begin("Dockable Window")) {
+	//	ImGui::TextUnformatted("Test");
+	//}
+	//ImGui::End();
+
+	if (ImGui::Begin("Scene", p_open)) {
+		ImGui::GetWindowDrawList()->AddImage(
+			(void *)App->renderer->textureColorbuffer, ImVec2(ImGui::GetCursorScreenPos()),
+			ImVec2(ImGui::GetCursorScreenPos().x + App->window->GetWindowWidth() / 1.5, ImGui::GetCursorScreenPos().y + App->window->GetWindowHeight() / 1.5), ImVec2(0, 1), ImVec2(1, 0));
+	}
+	ImGui::End();
+}
+
 void ModuleUI::DrawConfigWindow(bool *p_open) {
 	if (ImGui::Begin("Configuration", p_open)) {
 		ImGui::Text("Welcome to %s!", &engineName[0]);
 		ImGui::Spacing();
 
-		if (ImGui::CollapsingHeader("Camera")) 
+		if (ImGui::CollapsingHeader("Camera"))
 			DrawCameraHeader();
 
-		if (ImGui::CollapsingHeader("Hardware")) 
+		if (ImGui::CollapsingHeader("Hardware"))
 			DrawHardwareHeader();
 
-		if (ImGui::CollapsingHeader("Performance")) 
+		if (ImGui::CollapsingHeader("Performance"))
 			DrawPerformanceHeader();
 
-		if (ImGui::CollapsingHeader("Textures")) 
+		if (ImGui::CollapsingHeader("Textures"))
 			DrawTexturesHeader();
 
-		if (ImGui::CollapsingHeader("Window")) 
+		if (ImGui::CollapsingHeader("Window"))
 			DrawWindowHeader();
 	}
 	ImGui::End();
