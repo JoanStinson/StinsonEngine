@@ -4,6 +4,24 @@
 #include "ModuleWindow.h"
 #include <SDL_events.h>
 
+#define MOUSE_CLICK_RIGHT App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KeyState::REPEAT
+#define LEFT_SHIFT App->input->GetKey(SDL_SCANCODE_LSHIFT) == KeyState::REPEAT
+
+#define FORWARD App->input->GetKey(SDL_SCANCODE_W) == KeyState::REPEAT
+#define BACKWARD App->input->GetKey(SDL_SCANCODE_S) == KeyState::REPEAT
+#define LEFT App->input->GetKey(SDL_SCANCODE_A) == KeyState::REPEAT
+#define RIGHT App->input->GetKey(SDL_SCANCODE_D) == KeyState::REPEAT
+#define UP App->input->GetKey(SDL_SCANCODE_Q) == KeyState::REPEAT
+#define DOWN App->input->GetKey(SDL_SCANCODE_E) == KeyState::REPEAT
+
+#define MOUSE_MOVE_LEFT motion.x < 0
+#define MOUSE_MOVE_RIGHT motion.x > 0
+#define MOUSE_MOVE_UP motion.y < 0
+#define MOUSE_MOVE_DOWN motion.y > 0
+
+#define ZOOM_IN App->input->GetMouseWheel()->y > 0
+#define ZOOM_OUT App->input->GetMouseWheel()->y < 0
+
 bool ModuleCamera::Init() {
 	LOG("Init Module Camera\n");
 	ResetCamera();
@@ -11,12 +29,12 @@ bool ModuleCamera::Init() {
 }
 
 UpdateStatus ModuleCamera::Update() {
-	if (App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KeyState::REPEAT) {
-		HandleTranslation();
-		HandleRotation();
+	if (MOUSE_CLICK_RIGHT) {
+		Translate();
+		Rotate();
 	}
-	HandleZoom();
-	speedScale = App->input->GetKey(SDL_SCANCODE_LSHIFT) == KeyState::REPEAT ? 3.0F : 1.0F;
+	Zoom();
+	speedScale = LEFT_SHIFT ? 3.0F : 1.0F;
 	return UpdateStatus::CONTINUE;
 }
 
@@ -60,8 +78,8 @@ math::float4x4 ModuleCamera::LookAt(math::float3 eye, math::float3 target, math:
 }
 
 void ModuleCamera::CalculateMatrixes() {
-	model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
-	view = LookAt(math::float3(0.0F, 1.F, 4.0F), math::float3::zero, math::float3::unitY);
+	model = math::float4x4::FromTRS(math::float3::zero, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
+	view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	proj = frustum.ProjectionMatrix();
 }
 
@@ -71,7 +89,6 @@ void ModuleCamera::ResetCamera() {
 	zoomSpeed = 0.4F;
 	speedScale = 1.0F;
 	aspectRatio = (float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight();
-	rotAngle = math::float3::zero;
 
 	frustum.type = FrustumType::PerspectiveFrustum;
 	frustum.pos = math::float3::zero;
@@ -81,96 +98,85 @@ void ModuleCamera::ResetCamera() {
 	frustum.farPlaneDistance = 100.0F;
 	frustum.verticalFov = math::pi / 4.0F;
 	frustum.horizontalFov = 2.F * atanf(tanf(frustum.verticalFov * 0.5F) * aspectRatio);
+	frustum.Translate(math::float3(0.0f, 2.0f, 10.f));
 
-	model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
-	view = LookAt(math::float3(0.0F, 1.F, 4.0F), math::float3::zero, math::float3::unitY);
+	model = math::float4x4::FromTRS(math::float3::zero, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
+	view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	proj = frustum.ProjectionMatrix();
 }
 
-void ModuleCamera::HandleTranslation() {
-	// Forward
-	if (App->input->GetKey(SDL_SCANCODE_W) == KeyState::REPEAT) {
-		frustum.Translate(math::float3(0.0F, 0.0F, movSpeed * speedScale));
-		CalculateMatrixes();
+void ModuleCamera::Translate() {
+	if (FORWARD) {
+		frustum.pos += frustum.front * (movSpeed*speedScale);
+		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	// Backward
-	if (App->input->GetKey(SDL_SCANCODE_S) == KeyState::REPEAT) {
-		frustum.Translate(math::float3(0.0F, 0.0F, -(movSpeed * speedScale)));
-		CalculateMatrixes();
+	if (BACKWARD) {
+		frustum.pos -= frustum.front * (movSpeed*speedScale);
+		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	// Left
-	if (App->input->GetKey(SDL_SCANCODE_A) == KeyState::REPEAT) {
-		frustum.Translate(math::float3(movSpeed * speedScale, 0.0F, 0.0F));
-		CalculateMatrixes();
+	if (LEFT) {
+		frustum.pos -= frustum.WorldRight() * (movSpeed*speedScale);
+		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	// Right
-	if (App->input->GetKey(SDL_SCANCODE_D) == KeyState::REPEAT) {
-		frustum.Translate(math::float3(-(movSpeed * speedScale), 0.0F, 0.0F));
-		CalculateMatrixes();
+	if (RIGHT) {
+		frustum.pos += frustum.WorldRight() * (movSpeed*speedScale);
+		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	// Down
-	if (App->input->GetKey(SDL_SCANCODE_Q) == KeyState::REPEAT) {
-		frustum.Translate(math::float3(0.0F, movSpeed * speedScale, 0.0F));
-		CalculateMatrixes();
+	if (UP) {
+		frustum.pos -= frustum.up * (movSpeed*speedScale);
+		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	// Up
-	if (App->input->GetKey(SDL_SCANCODE_E) == KeyState::REPEAT) {
-		frustum.Translate(math::float3(0.0F, -(movSpeed * speedScale), 0.0F));
-		CalculateMatrixes();
+	if (DOWN) {
+		frustum.pos += frustum.up * (movSpeed*speedScale);
+		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
 }
 
-void ModuleCamera::HandleRotation() {
+void ModuleCamera::Rotate() {
 	iPoint motion = App->input->GetMouseMotion();
-	int motionOffset = 20;
+	int motionOffset = 15;
 
 	if (abs(motion.x) > motionOffset) {
-		rotAngle.x = 0;
-		rotAngle.y = rotSpeed * speedScale;
+		pitch = 0;
+		yaw = rotSpeed * speedScale;
 
-		// Left
-		if (motion.x < 0) {
-			model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
-			view = view * (math::float4x4::RotateX(rotAngle.x) * math::float4x4::RotateY(-rotAngle.y) * math::float4x4::RotateZ(rotAngle.z));
-			proj = frustum.ProjectionMatrix();
+		if (MOUSE_MOVE_LEFT) {
+			frustum.front = math::float3x3::RotateY(-yaw).Transform(frustum.front).Normalized();
+			frustum.up = math::float3x3::RotateY(-yaw).Transform(frustum.up).Normalized();
+			view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		}
-		// Right
-		else {
-			model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
-			view = view * (math::float4x4::RotateX(rotAngle.x) * math::float4x4::RotateY(rotAngle.y) * math::float4x4::RotateZ(rotAngle.z));
-			proj = frustum.ProjectionMatrix();
+		else if (MOUSE_MOVE_RIGHT) {
+			frustum.front = math::float3x3::RotateY(yaw).Transform(frustum.front).Normalized();
+			frustum.up = math::float3x3::RotateY(yaw).Transform(frustum.up).Normalized();
+			view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		}
 	}
-	if (abs(motion.y) > motionOffset) {
-		rotAngle.y = 0;
-		rotAngle.x = rotSpeed * speedScale;
+	else if (abs(motion.y) > motionOffset) {
+		yaw = 0;
+		pitch = rotSpeed * speedScale;
 
-		// Down
-		if (motion.y > 0) {
-			model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
-			view = view * (math::float4x4::RotateX(rotAngle.x) * math::float4x4::RotateY(-rotAngle.y) * math::float4x4::RotateZ(rotAngle.z));
-			proj = frustum.ProjectionMatrix();
+		if (MOUSE_MOVE_UP) {
+			frustum.front = math::float3x3::RotateAxisAngle(frustum.WorldRight(), pitch).Transform(frustum.front).Normalized();
+			frustum.up = math::float3x3::RotateAxisAngle(frustum.WorldRight(), pitch).Transform(frustum.up).Normalized();
+			view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		}
-		// Up
-		else {
-			model = math::float4x4::FromTRS(frustum.pos, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
-			view = view * (math::float4x4::RotateX(-rotAngle.x) * math::float4x4::RotateY(-rotAngle.y) * math::float4x4::RotateZ(rotAngle.z));
-			proj = frustum.ProjectionMatrix();
+		else if (MOUSE_MOVE_DOWN) {
+			frustum.front = math::float3x3::RotateAxisAngle(frustum.WorldRight(), -pitch).Transform(frustum.front).Normalized();
+			frustum.up = math::float3x3::RotateAxisAngle(frustum.WorldRight(), -pitch).Transform(frustum.up).Normalized();
+			view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		}
 	}
 }
 
-void ModuleCamera::HandleZoom() {
-	// Forward
-	if (App->input->GetMouseWheel()->y > 0) {
-		frustum.Translate(math::float3(0.0F, 0.0F, zoomSpeed * speedScale));
-		CalculateMatrixes();
+void ModuleCamera::Zoom() {
+	if (ZOOM_IN) {
+		frustum.pos += frustum.front * (movSpeed*speedScale);
+		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		App->input->GetMouseWheel()->y = 0;
 	}
-	// Backward
-	if (App->input->GetMouseWheel()->y < 0) {
-		frustum.Translate(math::float3(0.0F, 0.0F, -(zoomSpeed * speedScale)));
-		CalculateMatrixes();
+	if (ZOOM_OUT) {
+		frustum.pos -= frustum.front * (movSpeed*speedScale);
+		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		App->input->GetMouseWheel()->y = 0;
 	}
 }

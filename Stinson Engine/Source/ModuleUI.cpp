@@ -157,9 +157,8 @@ void ModuleUI::DrawConfigWindow(bool *p_open) {
 
 		if (ImGui::CollapsingHeader("Window")) 
 			DrawWindowHeader();
-
-		ImGui::End();
 	}
+	ImGui::End();
 }
 
 void ModuleUI::DrawPropertiesWindow(bool *p_open) {
@@ -174,8 +173,9 @@ void ModuleUI::DrawPropertiesWindow(bool *p_open) {
 		if (ImGui::CollapsingHeader("Texture")) {
 
 		}
-		ImGui::End();
+
 	}
+	ImGui::End();
 }
 
 void ModuleUI::DrawAboutWindow(bool *p_open) {
@@ -199,8 +199,8 @@ void ModuleUI::DrawAboutWindow(bool *p_open) {
 			RequestBrowser("https://github.com/JoanStinson/Stinson_Engine/blob/master/LICENSE");
 		ImGui::SameLine();
 		HelpMarker("See LICENSE for more information");
-		ImGui::End();
 	}
+	ImGui::End();
 }
 
 void ModuleUI::DrawCameraHeader() {

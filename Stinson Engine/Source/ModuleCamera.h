@@ -32,15 +32,16 @@ public:
 	float aspectRatio;
 
 private:
-	void HandleTranslation();
-	void HandleRotation();
-	void HandleZoom();
+	void Translate();
+	void Rotate();
+	void Zoom();
 
 private:
 	math::float4x4 model;
 	math::float4x4 view;
 	math::float4x4 proj;
-	math::float3 rotAngle;
+	float yaw;
+	float pitch;
 	float speedScale;
 };
 
