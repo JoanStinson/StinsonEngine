@@ -2,22 +2,26 @@
 #include "Application.h"
 #include "ModuleInput.h"
 #include "ModuleWindow.h"
+#include "ModuleModelLoader.h"
 #include <SDL_events.h>
 
 #define MOUSE_CLICK_RIGHT App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KeyState::REPEAT
-#define LEFT_SHIFT App->input->GetKey(SDL_SCANCODE_LSHIFT) == KeyState::REPEAT
-
-#define FORWARD App->input->GetKey(SDL_SCANCODE_W) == KeyState::REPEAT
-#define BACKWARD App->input->GetKey(SDL_SCANCODE_S) == KeyState::REPEAT
-#define LEFT App->input->GetKey(SDL_SCANCODE_A) == KeyState::REPEAT
-#define RIGHT App->input->GetKey(SDL_SCANCODE_D) == KeyState::REPEAT
-#define UP App->input->GetKey(SDL_SCANCODE_Q) == KeyState::REPEAT
-#define DOWN App->input->GetKey(SDL_SCANCODE_E) == KeyState::REPEAT
-
+#define MOUSE_CLICK_LEFT App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KeyState::REPEAT
 #define MOUSE_MOVE_LEFT motion.x < 0
 #define MOUSE_MOVE_RIGHT motion.x > 0
 #define MOUSE_MOVE_UP motion.y < 0
 #define MOUSE_MOVE_DOWN motion.y > 0
+
+#define SHIFT_LEFT App->input->GetKey(SDL_SCANCODE_LSHIFT) == KeyState::REPEAT
+#define ALT_LEFT App->input->GetKey(SDL_SCANCODE_LALT) == KeyState::REPEAT
+
+#define W App->input->GetKey(SDL_SCANCODE_W) == KeyState::REPEAT
+#define S App->input->GetKey(SDL_SCANCODE_S) == KeyState::REPEAT
+#define A App->input->GetKey(SDL_SCANCODE_A) == KeyState::REPEAT
+#define D App->input->GetKey(SDL_SCANCODE_D) == KeyState::REPEAT
+#define Q App->input->GetKey(SDL_SCANCODE_Q) == KeyState::REPEAT
+#define E App->input->GetKey(SDL_SCANCODE_E) == KeyState::REPEAT
+#define F App->input->GetKey(SDL_SCANCODE_F) == KeyState::DOWN
 
 #define ZOOM_IN App->input->GetMouseWheel()->y > 0
 #define ZOOM_OUT App->input->GetMouseWheel()->y < 0
@@ -33,8 +37,16 @@ UpdateStatus ModuleCamera::Update() {
 		Translate();
 		Rotate();
 	}
+
+	if (MOUSE_CLICK_LEFT && ALT_LEFT)
+		Orbit();
+
+	if (F) 
+		Focus();
+
 	Zoom();
-	speedScale = LEFT_SHIFT ? 3.0F : 1.0F;
+
+	speedScale = SHIFT_LEFT ? 3.0F : 1.0F;
 	return UpdateStatus::CONTINUE;
 }
 
@@ -86,9 +98,11 @@ void ModuleCamera::CalculateMatrixes() {
 void ModuleCamera::ResetCamera() {
 	movSpeed = 0.2F;
 	rotSpeed = 0.1F;
-	zoomSpeed = 0.4F;
+	zoomSpeed = 1.0F;
 	speedScale = 1.0F;
 	aspectRatio = (float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight();
+	targetPos = math::float3(0.0F, 2.0F, -200.F);
+	center = math::float3(0.F, 0.F, 0.F);
 
 	frustum.type = FrustumType::PerspectiveFrustum;
 	frustum.pos = math::float3::zero;
@@ -98,7 +112,7 @@ void ModuleCamera::ResetCamera() {
 	frustum.farPlaneDistance = 100.0F;
 	frustum.verticalFov = math::pi / 4.0F;
 	frustum.horizontalFov = 2.F * atanf(tanf(frustum.verticalFov * 0.5F) * aspectRatio);
-	frustum.Translate(math::float3(0.0f, 2.0f, 10.f));
+	frustum.Translate(math::float3(0.0F, 2.0F, 10.F));
 
 	model = math::float4x4::FromTRS(math::float3::zero, math::float3x3::RotateY(math::pi / 4.0F), float3::one);
 	view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
@@ -106,27 +120,27 @@ void ModuleCamera::ResetCamera() {
 }
 
 void ModuleCamera::Translate() {
-	if (FORWARD) {
+	if (W) {
 		frustum.pos += frustum.front * (movSpeed*speedScale);
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	if (BACKWARD) {
+	if (S) {
 		frustum.pos -= frustum.front * (movSpeed*speedScale);
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	if (LEFT) {
+	if (A) {
 		frustum.pos -= frustum.WorldRight() * (movSpeed*speedScale);
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	if (RIGHT) {
+	if (D) {
 		frustum.pos += frustum.WorldRight() * (movSpeed*speedScale);
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	if (UP) {
+	if (Q) {
 		frustum.pos -= frustum.up * (movSpeed*speedScale);
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
-	if (DOWN) {
+	if (E) {
 		frustum.pos += frustum.up * (movSpeed*speedScale);
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 	}
@@ -141,13 +155,13 @@ void ModuleCamera::Rotate() {
 		yaw = rotSpeed * speedScale;
 
 		if (MOUSE_MOVE_LEFT) {
-			frustum.front = math::float3x3::RotateY(-yaw).Transform(frustum.front).Normalized();
-			frustum.up = math::float3x3::RotateY(-yaw).Transform(frustum.up).Normalized();
+			frustum.front = math::float3x3::RotateY(yaw).Transform(frustum.front).Normalized();
+			frustum.up = math::float3x3::RotateY(yaw).Transform(frustum.up).Normalized();
 			view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		}
 		else if (MOUSE_MOVE_RIGHT) {
-			frustum.front = math::float3x3::RotateY(yaw).Transform(frustum.front).Normalized();
-			frustum.up = math::float3x3::RotateY(yaw).Transform(frustum.up).Normalized();
+			frustum.front = math::float3x3::RotateY(-yaw).Transform(frustum.front).Normalized();
+			frustum.up = math::float3x3::RotateY(-yaw).Transform(frustum.up).Normalized();
 			view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		}
 	}
@@ -179,4 +193,41 @@ void ModuleCamera::Zoom() {
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
 		App->input->GetMouseWheel()->y = 0;
 	}
+}
+
+void ModuleCamera::Orbit() {
+	iPoint motion = App->input->GetMouseMotion();
+	int motionOffset = 15;
+
+	if (abs(motion.x) > motionOffset) {
+		pitch = 0;
+		yaw = rotSpeed * speedScale;
+
+		if (MOUSE_MOVE_LEFT) {
+			model = model * math::float3x3::RotateY(-yaw);
+		}
+		else if (MOUSE_MOVE_RIGHT) {
+			model = model * math::float3x3::RotateY(yaw);
+		}
+	}
+	else if (abs(motion.y) > motionOffset) {
+		yaw = 0;
+		pitch = rotSpeed * speedScale;
+
+		if (MOUSE_MOVE_UP) {
+			model = model * math::float3x3::RotateX(pitch);
+		}
+		else if (MOUSE_MOVE_DOWN) {
+			model = model * math::float3x3::RotateX(-pitch);
+		}
+	}
+}
+
+void ModuleCamera::Focus() {
+	frustum.pos = center;
+	frustum.front = -math::float3::unitZ;
+	frustum.up = math::float3::unitY;
+
+	math::float3 direction = (targetPos - frustum.pos).Normalized();
+	view = LookAt(frustum.pos, frustum.pos + frustum.front + direction, frustum.up);
 }

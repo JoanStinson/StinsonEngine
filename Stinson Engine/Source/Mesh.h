@@ -15,7 +15,7 @@ public:
 
 public:
 	struct MeshEntry {
-		MeshEntry(aiMesh *mesh);
+		MeshEntry(aiMesh *mesh, int index);
 		~MeshEntry();
 		void Render();
 
@@ -34,5 +34,3 @@ private:
 };
 
 #endif // __MESH_H__
-
-// https://badvertex.com/2014/04/13/loading-meshes-using-assimp-in-opengl.html

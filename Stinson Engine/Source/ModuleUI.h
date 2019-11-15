@@ -64,6 +64,7 @@ private:
 	bool showNearest = false;
 	bool showLinear = true;
 	bool showMipMaps = true;
+	bool checkers = false;
 
 	char engineName[40] = TITLE;
 	char version[12] = "1.0.0";

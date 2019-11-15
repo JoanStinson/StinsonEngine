@@ -25,18 +25,6 @@ public:
 	void WindowResized(unsigned width, unsigned height) const;
 	void* GetContext() const;
 
-public:
-	Mesh *mesh;
-	ILinfo *imageInfo = nullptr;
-
-	unsigned int texture;
-	unsigned int sanicTexture;
-	unsigned int blueTexture;
-	unsigned int bakeHouse;
-
-	bool drawTriangle = false;
-	bool drawSquare = true;
-
 private:
 	void DrawLineGrid();
 	static const char* GetSourceStr(GLenum source);

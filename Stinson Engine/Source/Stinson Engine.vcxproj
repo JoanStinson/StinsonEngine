@@ -69,7 +69,6 @@
     <ClCompile Include="ModuleTextures.cpp" />
     <ClCompile Include="ModuleUI.cpp" />
     <ClCompile Include="ModuleWindow.cpp" />
-    <ClCompile Include="MSTimer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Libraries\ImGui\imconfig.h" />
@@ -152,7 +151,6 @@
     <ClInclude Include="ModuleTextures.h" />
     <ClInclude Include="ModuleUI.h" />
     <ClInclude Include="ModuleWindow.h" />
-    <ClInclude Include="MSTimer.h" />
     <ClInclude Include="Point.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

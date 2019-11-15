@@ -147,7 +147,7 @@ GLuint ModuleTextures::Load(const char *filename, ILinfo *imageInfo, GLuint wrap
 			}
 
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (unsigned)ilGetInteger(IL_IMAGE_WIDTH), (unsigned)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
-			glGenerateMipmap(GL_TEXTURE_2D);
+			if (useMipMaps) glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else {
 			error = ilGetError();

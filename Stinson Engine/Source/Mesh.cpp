@@ -12,10 +12,11 @@ Mesh::Mesh(const char *filename, unsigned int texture, unsigned int program) : f
 		LOG("Unable to load mesh %s\n", importer.GetErrorString());
 	}
 	else {
-		LOG("Loaded aiScene from file '%s' \n", filename);
+		LOG("Loading model '%s' \n", filename);
+		LOG("Model contains %d meshes \n", scene->mNumMeshes);
 		for (int i = 0; i < scene->mNumMeshes; ++i) 
-			meshEntries.push_back(new Mesh::MeshEntry(scene->mMeshes[i]));
-		LOG("Loaded mesh correctly!\n");
+			meshEntries.push_back(new Mesh::MeshEntry(scene->mMeshes[i], i+1));
+		LOG("Loaded model succesfully!\n");
 	}
 }
 
@@ -45,7 +46,7 @@ void Mesh::Render(unsigned int meshTexture, unsigned int meshProgram) {
 		meshEntries[i]->Render();
 }
 
-Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
+Mesh::MeshEntry::MeshEntry(aiMesh *mesh, int index) {
 	vbo[(int)BUFFER::VERTEX] = 0;
 	vbo[(int)BUFFER::TEXCOORD] = 0;
 	vbo[(int)BUFFER::NORMAL] = 0;
@@ -56,7 +57,8 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
 
 	elementCount = mesh->mNumFaces * 3;
 
-	LOG("Checking mesh positions\n");
+	if (index < 10) { LOG("Loading mesh 0%d vertices\n", index); }
+	else { LOG("Loading mesh %d vertices\n", index); }
 	if (mesh->HasPositions()) {
 		float *vertices = new float[mesh->mNumVertices * 3];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -74,10 +76,9 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
 
 		delete[] vertices;
 	}
-	else 
-		LOG("Mesh has no positions!\n");
 
-	LOG("Checking mesh texture coords\n");
+	if (index < 10) { LOG("Loading mesh 0%d texture coords\n", index); }
+	else { LOG("Loading mesh %d texture coords\n", index); }
 	if (mesh->HasTextureCoords(0)) {
 		float *texCoords = new float[mesh->mNumVertices * 2];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -94,10 +95,9 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
 
 		delete[] texCoords;
 	}
-	else 
-		LOG("Mesh has no texture coords!\n");
 
-	LOG("Checking mesh normals\n");
+	if (index < 10) { LOG("Loading mesh 0%d normals\n", index); }
+	else { LOG("Loading mesh %d normals\n", index); }
 	if (mesh->HasNormals()) {
 		float *normals = new float[mesh->mNumVertices * 3];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -115,10 +115,9 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
 
 		delete[] normals;
 	}
-	else
-		LOG("Mesh has no normals!\n");
 
-	LOG("Checking mesh faces\n");
+	if (index < 10) { LOG("Loading mesh 0%d indices\n", index); }
+	else { LOG("Loading mesh %d indices\n", index); }
 	if (mesh->HasFaces()) {
 		unsigned int *indices = new unsigned int[mesh->mNumFaces * 3];
 		for (int i = 0; i < mesh->mNumFaces; ++i) {
@@ -136,8 +135,6 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
 
 		delete[] indices;
 	}
-	else
-		LOG("Mesh has no faces!\n");
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

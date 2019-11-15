@@ -3,11 +3,11 @@
 
 #include "Module.h"
 #include "Mesh.h"
+#include "../Libraries/MathGeoLib/MathGeoLib.h"
 #include <vector>
-
-enum class MeshModel {
-	BAKEHOUSE
-};
+#include <il.h>
+#include <ilu.h>
+#include <ilut.h>
 
 class ModuleModelLoader : public Module {
 public:
@@ -18,12 +18,14 @@ public:
 	bool CleanUp() override;
 
 public:
-	void ChangeMesh(const char *filename, int index = 0);
-	void ChangeTexture(unsigned int texture, int index = 0);
+	void ChangeMesh(const char *filename);
+	void ChangeTexture(unsigned int texture, bool saveTexture = true);
 	void RenderAllMeshes();
 
-private:
-	std::vector<Mesh*> meshes;
+public:
+	Mesh* activeMesh = nullptr;
+	ILinfo* activeTexture = nullptr;
+	unsigned int previousTexture;
 };
 
 #endif // __MODULEMODELLOADER_H__

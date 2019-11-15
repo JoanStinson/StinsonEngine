@@ -83,9 +83,6 @@ UpdateStatus ModuleUI::Update() {
 UpdateStatus ModuleUI::PostUpdate() {
 	ImGui::Render();
 	glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
-	//ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-	//glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-	//glClear(GL_COLOR_BUFFER_BIT);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	SDL_GL_SwapWindow(App->window->window);
 	return UpdateStatus::CONTINUE;
@@ -208,38 +205,30 @@ void ModuleUI::DrawCameraHeader() {
 	static float aspectRatio = App->camera->aspectRatio;
 	static ImVec4 color = ImVec4(114.0F / 255.0F, 144.0F / 255.0F, 154.0F / 255.0F, 200.0F / 255.0F);
 
-	if (ImGui::DragFloat3("Front", (float*)&App->camera->frustum.front)) {
+	if (ImGui::DragFloat3("Front", (float*)&App->camera->frustum.front, 0.1F)) {
 		App->camera->CalculateMatrixes();
 	}
-	if (ImGui::DragFloat3("Up", (float*)&App->camera->frustum.up)) {
+	if (ImGui::DragFloat3("Up", (float*)&App->camera->frustum.up, 0.1F)) {
 		App->camera->CalculateMatrixes();
 	}
-	if (ImGui::DragFloat3("Position", (float*)&App->camera->frustum.pos)) {
+	if (ImGui::DragFloat3("Position", (float*)&App->camera->frustum.pos, 0.1F)) {
 		App->camera->CalculateMatrixes();
 	}
-	ImGui::DragFloat("Mov Speed", &App->camera->movSpeed);
-	ImGui::DragFloat("Rot Speed", &App->camera->rotSpeed);
-	ImGui::DragFloat("Zoom Speed", &App->camera->zoomSpeed);
-	ImGui::Spacing();
-	ImGui::Spacing();
-	ImGui::Spacing();
-	if (ImGui::DragFloat("Near Plane", &App->camera->frustum.nearPlaneDistance)) {
+	ImGui::DragFloat("Mov Speed", &App->camera->movSpeed, 0.1F);
+	ImGui::DragFloat("Rot Speed", &App->camera->rotSpeed, 0.1F);
+	ImGui::DragFloat("Zoom Speed", &App->camera->zoomSpeed, 0.1F);
+	if (ImGui::DragFloat("Near Plane", &App->camera->frustum.nearPlaneDistance, 0.1F)) {
 		App->camera->CalculateMatrixes();
 	}
-	if (ImGui::DragFloat("Far Plane", &App->camera->frustum.farPlaneDistance)) {
+	if (ImGui::DragFloat("Far Plane", &App->camera->frustum.farPlaneDistance, 0.1F)) {
 		App->camera->CalculateMatrixes();
 	}
-	if (ImGui::DragFloat("Field of View", &fov)) {
+	if (ImGui::DragFloat("Field of View", &fov, 0.1F)) {
 		App->camera->SetFOV(fov);
 	}
-	if (ImGui::DragFloat("Aspect Ratio", &aspectRatio)) {
+	if (ImGui::DragFloat("Aspect Ratio", &aspectRatio, 0.1F)) {
 		App->camera->SetAspectRatio(aspectRatio);
 	}
-	//ImGui::Text("Background Color:");
-	//ImGui::SameLine();
-	//ImGui::ColorEdit4("Background Color##3", (float*)&color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel);
-	//ImGui::SameLine();
-	//HelpMarker("Click to open color picker and change bg color");
 	if (ImGui::Button("Reset Camera")) {
 		App->camera->ResetCamera();
 		fov = App->camera->frustum.verticalFov;
@@ -307,29 +296,6 @@ void ModuleUI::DrawPerformanceHeader() {
 }
 
 void ModuleUI::DrawTexturesHeader() {
-	if (ImGui::BeginMenu("Shape")) {
-		if (ImGui::Checkbox("Triangle", &showTriangle)) {
-			App->renderer->drawTriangle = !App->renderer->drawTriangle;
-		}
-		if (ImGui::Checkbox("Square", &showSquare)) {
-			App->renderer->drawSquare = !App->renderer->drawSquare;
-		}
-		ImGui::EndMenu();
-	}
-
-	if (ImGui::BeginMenu("Image")) {
-		if (ImGui::Checkbox("Sonic", &showSanicTexture)) {
-			//App->renderer->texture = App->textures->Load("../Resources/Assets/sonic.png", App->renderer->imageInfo);
-		}
-		if (ImGui::Checkbox("Butterflies", &showButterfliesTexture)) {
-			//App->renderer->texture = App->textures->Load("../Resources/Assets/butterflies.jpg", App->renderer->imageInfo);
-		}
-		if (ImGui::Checkbox("Link", &showLinkTexture)) {
-			//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo);
-		}
-		ImGui::EndMenu();
-	}
-
 	if (ImGui::BeginMenu("Wrapping Mode")) {
 		if (ImGui::Checkbox("Repeat", &showRepeat)) {
 			//if (showRepeat)
@@ -377,7 +343,7 @@ void ModuleUI::DrawTexturesHeader() {
 	if (ImGui::BeginMenu("Mipmaps", &showMipMaps)) {
 		if (ImGui::Checkbox("Yes", &showMipMaps)) {
 			//if (showMipMaps)
-				//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, true);
+				//App->model->ChangeTexture(App->textures->Load(App->model->activeMesh->filename, App->model->activeTexture, 4, 0, true));
 		}
 		ImGui::SameLine();
 		HelpMarker("After a certain distance threshold from the viewer, OpenGL will use a different mipmap texture that best suits the distance to the object. Because the object is far away, the smaller resolution will not be noticeable to the user. Also, mipmaps have the added bonus feature that they're good for performance as well.");
@@ -387,23 +353,28 @@ void ModuleUI::DrawTexturesHeader() {
 	ImGui::Separator();
 	ImGui::Text("Width:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, " %dpx (%db)", App->renderer->imageInfo->Width, App->renderer->imageInfo->Width * App->renderer->imageInfo->Bpp);
+	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->model->activeTexture->Width);
 	ImGui::Text("Height:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%dpx (%db)", App->renderer->imageInfo->Height, App->renderer->imageInfo->Height * App->renderer->imageInfo->Bpp);
-	ImGui::Text("Pixel Depth:");
+	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->model->activeTexture->Height);
+	ImGui::Text("Depth:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%d", App->renderer->imageInfo->Depth);
+	ImGui::TextColored(LIGHT_BLUE, "%d", App->model->activeTexture->Depth);
+	ImGui::Text("BPP:");
+	ImGui::SameLine();
+	ImGui::TextColored(LIGHT_BLUE, "%d", App->model->activeTexture->Bpp);
 	ImGui::Text("Format:");
 	ImGui::SameLine();
-	ILenum format = App->renderer->imageInfo->Type;
+	ILenum format = App->model->activeTexture->Type;
 	if (format == (int)IL_PNG)		ImGui::TextColored(LIGHT_BLUE, "PNG");
 	else if (format == (int)IL_JPG) ImGui::TextColored(LIGHT_BLUE, "JPG");
 	else if (format == (int)IL_DDS) ImGui::TextColored(LIGHT_BLUE, "DDS");
 	else ImGui::TextColored(RED, "INVALID");
-
-	if (ImGui::Button("Checkers Texture")) {
-		App->model->ChangeTexture(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg"));
+	if (ImGui::Checkbox("Checkers Texture", &checkers)) {
+		if (checkers)
+			App->model->ChangeTexture(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg"), false);
+		else
+			App->model->ChangeTexture(App->model->previousTexture, false);
 	}
 }
 

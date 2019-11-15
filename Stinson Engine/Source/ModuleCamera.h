@@ -24,22 +24,29 @@ public:
 	void CalculateMatrixes();
 	void ResetCamera();
 
+	void Focus();
+
 public:
 	Frustum frustum;
 	float movSpeed;
 	float rotSpeed;
 	float zoomSpeed;
 	float aspectRatio;
+	math::float3 center;
 
 private:
 	void Translate();
 	void Rotate();
 	void Zoom();
+	void Orbit();
 
 private:
 	math::float4x4 model;
 	math::float4x4 view;
 	math::float4x4 proj;
+
+	math::float3 targetPos;
+
 	float yaw;
 	float pitch;
 	float speedScale;

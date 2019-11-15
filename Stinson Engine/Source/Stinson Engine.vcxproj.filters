@@ -174,9 +174,6 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Components</Filter>
     </ClCompile>
-    <ClCompile Include="MSTimer.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -421,9 +418,6 @@
     </ClInclude>
     <ClInclude Include="ModuleModelLoader.h">
       <Filter>Core Modules</Filter>
-    </ClInclude>
-    <ClInclude Include="MSTimer.h">
-      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

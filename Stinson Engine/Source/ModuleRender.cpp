@@ -11,7 +11,6 @@
 #include <ilu.h>
 #include <ilut.h>
 
-// https://www.khronos.org/opengl/wiki/Common_Mistakes
 void __stdcall OpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
 bool ModuleRender::Init() {
@@ -86,60 +85,17 @@ bool ModuleRender::Init() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	// textures
-	imageInfo = new ILinfo();
-	imageInfo->Width = 1;
-	imageInfo->Height = 1;
-	//texture = App->textures->Load("../Resources/Assets/butterflies.jpg", imageInfo);
-
 	return true;
 }
 
 UpdateStatus ModuleRender::PreUpdate() {
+	glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	return UpdateStatus::CONTINUE;
 }
 
 UpdateStatus ModuleRender::Update() {
-	// Draw Texture
-	glUseProgram(*App->programs->textureProgram);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
-
-	//if (drawTriangle) {
-	//	// Triangle
-	//	glEnableVertexAttribArray(0);
-	//	glBindBuffer(GL_ARRAY_BUFFER, triangleVBO);
-	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	//	glDrawArrays(GL_TRIANGLES, 0, 3);
-	//	glDisableVertexAttribArray(0);
-
-	//	// Triangle Texture
-	//	glEnableVertexAttribArray(1);
-	//	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 3 * 3));
-	//	glActiveTexture(GL_TEXTURE0);
-	//	glBindTexture(GL_TEXTURE_2D, texture);
-	//	glUniform1i(glGetUniformLocation(*App->programs->textureProgram, "texture0"), 0);
-	//}
-	//else if (drawSquare) {
-	//	// Square
-	//	glEnableVertexAttribArray(0);
-	//	glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
-	//	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-	//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareIBO);
-	//	glDrawElements(GL_TRIANGLE_FAN, 4, GL_UNSIGNED_INT, nullptr);
-	//	glDisableVertexAttribArray(0);
-
-	//	// Square Texture
-	//	glEnableVertexAttribArray(1);
-	//	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)(sizeof(float) * 3 * 4));
-	//	glActiveTexture(GL_TEXTURE0);
-	//	glBindTexture(GL_TEXTURE_2D, texture);
-	//	glUniform1i(glGetUniformLocation(*App->programs->textureProgram, "texture0"), 0);
-	//}
-
-	// Draw Grid Lines
+	// Draw grid lines
 	glUseProgram(*App->programs->gridLinesProgram);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
@@ -147,6 +103,10 @@ UpdateStatus ModuleRender::Update() {
 	DrawLineGrid();
 
 	// Draw baker house
+	glUseProgram(*App->programs->textureProgram);
+	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
 	App->model->RenderAllMeshes();
 	glUseProgram(0);
 
@@ -161,8 +121,6 @@ bool ModuleRender::CleanUp() {
 	LOG("Destroying renderer\n");
 	//Destroy window
 	SDL_GL_DeleteContext(context);
-	delete imageInfo;
-	//TODO delete all textures
 	return true;
 }
 
