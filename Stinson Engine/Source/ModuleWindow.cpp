@@ -14,13 +14,22 @@ bool ModuleWindow::Init() {
 	}
 	else {
 		// Create window
-		int width = SCREEN_WIDTH;
-		int height = SCREEN_HEIGHT;
+		SDL_DisplayMode DM;
+		SDL_GetCurrentDisplayMode(0, &DM);
+		desktopWidth = DM.w;
+		desktopHeight = DM.h;
+		width = desktopWidth / 2;
+		height = desktopHeight / 2;
 		Uint32 flags = SDL_WINDOW_SHOWN | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_OPENGL;
 
-		if (FULLSCREEN) {
+		if (FULLSCREEN) 
 			flags |= SDL_WINDOW_FULLSCREEN;
-		}
+		if (BORDERLESS)
+			flags |= SDL_WINDOW_BORDERLESS;
+		if (RESIZABLE)
+			flags |= SDL_WINDOW_RESIZABLE;
+		if (FULLSCREEN_DESKTOP)
+			flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 
 		window = SDL_CreateWindow(TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, flags);
 		
@@ -49,16 +58,34 @@ bool ModuleWindow::Init() {
 
 bool ModuleWindow::CleanUp() {
 	LOG("Destroying SDL window and quitting all SDL systems\n");
-
 	//Destroy window
 	if (window != nullptr) {
 		SDL_DestroyWindow(window);
 		SDL_FreeSurface(screen_surface);
 	}
-
 	//Quit SDL subsystems
 	SDL_Quit();
 	return true;
+}
+
+int ModuleWindow::GetWidth() const {
+	return width;
+}
+
+int ModuleWindow::GetHeight() const {
+	return height;
+}
+
+int ModuleWindow::GetDesktopWidth() const {
+	return desktopWidth;
+}
+
+int ModuleWindow::GetDesktopHeight() const {
+	return desktopHeight;
+}
+
+SDL_Window& ModuleWindow::GetWindow() const {
+	return *window;
 }
 
 void ModuleWindow::SetWindowTitle(char *title) {
@@ -85,20 +112,14 @@ void ModuleWindow::SetWindowBrightness(float brightness) {
 	SDL_SetWindowBrightness(window, brightness);
 }
 
-void ModuleWindow::SetWindowSize(int width, int height) {
-	SDL_SetWindowSize(window, width, height);
+void ModuleWindow::SetWidth(int newWidth) {
+	width = newWidth;
 }
 
-int ModuleWindow::GetWindowWidth() const {
-	int w;
-	int h;
-	SDL_GetWindowSize(window, &w, &h);
-	return w;
+void ModuleWindow::SetHeight(int newHeight) {
+	height = newHeight;
 }
 
-int ModuleWindow::GetWindowHeight() const {
-	int w;
-	int h;
-	SDL_GetWindowSize(window, &w, &h);
-	return h;
+void ModuleWindow::SetWindowSize(int newWidth, int newHeight) {
+	SDL_SetWindowSize(window, newWidth, newHeight);
 }

@@ -25,10 +25,6 @@ public:
 	bool CleanUp();
 
 public:
-	//TODO cleanup vbos, pointers, use functions, passing const and reference, const for functions 
-	// IMPORTANT DETAILS! :) #roadtorockstar
-
-public:
 	ModuleRender* renderer = nullptr;
 	ModuleWindow* window = nullptr;
 	ModuleInput* input = nullptr;

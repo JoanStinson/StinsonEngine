@@ -15,8 +15,11 @@ public:
 	bool CleanUp() override;
 
 public:
-	int GetWindowWidth() const;
-	int GetWindowHeight() const;
+	int GetWidth() const;
+	int GetHeight() const;
+	int GetDesktopWidth() const;
+	int GetDesktopHeight() const;
+	SDL_Window& GetWindow() const;
 
 	void SetWindowTitle(char *title);
 	void SetFullscreen(bool fullscreen);
@@ -24,11 +27,17 @@ public:
 	void SetBorderless(bool borderless);
 	void SetFullDesktop(bool fulldesktop);
 	void SetWindowBrightness(float brightness);
-	void SetWindowSize(int width, int height);
+	void SetWidth(int newWidth);
+	void SetHeight(int newHeight);
+	void SetWindowSize(int newWidth, int newHeight);
 
-public:
+private:
 	SDL_Window* window = nullptr;
 	SDL_Surface* screen_surface = nullptr;
+	int width;
+	int height;
+	int desktopWidth;
+	int desktopHeight;
 };
 
 #endif // __MODULEWINDOW_H__

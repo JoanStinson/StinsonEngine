@@ -10,7 +10,7 @@ enum class MainStatus {
 
 Application* App = nullptr;
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 
 	int mainReturn = EXIT_FAILURE;
 	MainStatus state = MainStatus::CREATION;

@@ -17,7 +17,7 @@ public:
 	unsigned int *screenProgram = nullptr;
 
 private:
-	unsigned LoadShader(const char* vertexFile, const char* fragmentFile);
+	unsigned int LoadShader(const char *vertexFile, const char *fragmentFile);
 	void CheckCompileErrors(unsigned int shader, const char *type) const;
 };
 

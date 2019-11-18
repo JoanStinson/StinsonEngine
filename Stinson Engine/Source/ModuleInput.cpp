@@ -9,8 +9,6 @@
 #include <SDL.h>
 #include <string>
 
-#define MAX_KEYS 300
-
 ModuleInput::ModuleInput() : mouseMotion({ 0,0 }), mouse({ 0, 0 }) {
 	keyboard = new KeyState[MAX_KEYS];
 	memset(keyboard, (int)KeyState::IDLE, sizeof(KeyState) * MAX_KEYS);
@@ -83,7 +81,7 @@ UpdateStatus ModuleInput::PreUpdate() {
 			case SDL_WINDOWEVENT_RESIZED:
 			case SDL_WINDOWEVENT_SIZE_CHANGED:
 				windowEvents[(int)EventWindow::RESIZE] = true;
-				App->camera->SetAspectRatio((float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight());
+				App->camera->SetAspectRatio((float)App->window->GetWidth() / (float)App->window->GetHeight());
 				App->renderer->WindowResized(event.window.data1, event.window.data2);
 				break;
 			}
@@ -98,14 +96,15 @@ UpdateStatus ModuleInput::PreUpdate() {
 			break;
 
 		case SDL_MOUSEMOTION:
-			mouseMotion.x = event.motion.xrel / SCREEN_SIZE;
-			mouseMotion.y = event.motion.yrel / SCREEN_SIZE;
-			mouse.x = event.motion.x / SCREEN_SIZE;
-			mouse.y = event.motion.y / SCREEN_SIZE;
+			mouseMotion.x = event.motion.xrel;
+			mouseMotion.y = event.motion.yrel;
+			mouse.x = event.motion.x;
+			mouse.y = event.motion.y;
 			break;
 
 		case SDL_MOUSEWHEEL:
 			*mouseWheel = event.wheel;
+			App->camera->canZoom = true;
 			break;
 
 		case SDL_DROPFILE:

@@ -29,7 +29,7 @@ bool ModuleProgram::CleanUp() {
 	return true;
 }
 
-unsigned ModuleProgram::LoadShader(const char *vertexFile, const char *fragmentFile) {
+unsigned int ModuleProgram::LoadShader(const char *vertexFile, const char *fragmentFile) {
 	// 1) Retrieve vertex/fragment source code from filePath
 	FILE *file = nullptr;
 

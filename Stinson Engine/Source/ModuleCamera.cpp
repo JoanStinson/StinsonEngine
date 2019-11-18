@@ -44,7 +44,8 @@ UpdateStatus ModuleCamera::Update() {
 	if (F) 
 		Focus();
 
-	Zoom();
+	if (canZoom)
+		Zoom();
 
 	speedScale = SHIFT_LEFT ? 3.0F : 1.0F;
 	return UpdateStatus::CONTINUE;
@@ -100,9 +101,9 @@ void ModuleCamera::ResetCamera() {
 	rotSpeed = 0.1F;
 	zoomSpeed = 1.0F;
 	speedScale = 1.0F;
-	aspectRatio = (float)App->window->GetWindowWidth() / (float)App->window->GetWindowHeight();
+	aspectRatio = (float)App->window->GetWidth() / (float)App->window->GetHeight();
 	targetPos = math::float3(0.0F, 2.0F, -200.F);
-	center = math::float3(0.F, 0.F, 0.F);
+	center = math::float3(0.F, 1.75F, 6.5F);
 
 	frustum.type = FrustumType::PerspectiveFrustum;
 	frustum.pos = math::float3::zero;
@@ -186,12 +187,12 @@ void ModuleCamera::Zoom() {
 	if (ZOOM_IN) {
 		frustum.pos += frustum.front * (movSpeed*speedScale);
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
-		App->input->GetMouseWheel()->y = 0;
+		canZoom = false;
 	}
 	if (ZOOM_OUT) {
 		frustum.pos -= frustum.front * (movSpeed*speedScale);
 		view = LookAt(frustum.pos, frustum.pos + frustum.front, frustum.up);
-		App->input->GetMouseWheel()->y = 0;
+		canZoom = false;
 	}
 }
 

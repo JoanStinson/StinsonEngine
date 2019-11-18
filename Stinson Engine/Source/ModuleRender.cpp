@@ -5,6 +5,7 @@
 #include "ModuleTextures.h"
 #include "ModuleCamera.h"
 #include "ModuleModelLoader.h"
+#include "ModuleUI.h"
 #include "Mesh.h"
 #include <SDL.h>
 #include <il.h>
@@ -15,7 +16,7 @@ void __stdcall OpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum
 
 bool ModuleRender::Init() {
 	LOG("Init Module Render\n");
-	context = SDL_GL_CreateContext(App->window->window);
+	context = SDL_GL_CreateContext(&App->window->GetWindow());
 	GLenum err = glewInit();
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
@@ -38,55 +39,15 @@ bool ModuleRender::Init() {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glViewport(0, 0, (GLsizei)SCREEN_WIDTH, (GLsizei)SCREEN_HEIGHT);
+	glViewport(0, 0, App->window->GetWidth(), App->window->GetHeight());
 
 	glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(&OpenGLErrorFunction, nullptr);
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 
-	// triangle
-	float vertex_data[] = {
-		-1.0F, -1.0F, 0.0F, // v0 pos
-		1.0F, -1.0F, 0.0F, // v1 pos
-		0.0F, 1.0F, 0.0F, // v2 pos
-
-		0.0F, 0.0F, // v0 texcoord
-		1.0F, 0.0F, // v1 texcoord
-		0.5F, 1.0F // v2 texcoord
-	};
-
-	glGenBuffers(1, &triangleVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, triangleVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// square
-	float vertexData[] = {
-		-1.0F, -1.0F, 0.0F,
-		 1.0F, -1.0F, 0.0F,
-		 1.0F,  1.0F, 0.0F,
-		-1.0F,  1.0F, 0.0F,
-
-		0.0F, 0.0F,
-		1.0F, 0.0F,
-		1.0F, 1.0F,
-		0.F, 1.0F
-	};
-
-	unsigned int indexData[] = { 0, 1, 2, 3 };
-
-	glGenBuffers(1, &squareVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, squareVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &squareIBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, squareIBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	// screen quad VAO
-	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+	// Screen quad VAO
+	float quadVertices[] = { 
 	// positions   // texCoords
 	-1.0f,  1.0f,  0.0f, 1.0f,
 	-1.0f, -1.0f,  0.0f, 0.0f,
@@ -107,20 +68,20 @@ bool ModuleRender::Init() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-	// frame buffer configuration
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	// Frame buffer configuration
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	glGenTextures(1, &textureColorbuffer);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glGenTextures(1, &renderTexture);
+	glBindTexture(GL_TEXTURE_2D, renderTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, App->window->GetWidth(), App->window->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
 
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCREEN_WIDTH, SCREEN_HEIGHT); 
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, App->window->GetWidth(), App->window->GetHeight()); 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		LOG("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
@@ -130,7 +91,7 @@ bool ModuleRender::Init() {
 }
 
 UpdateStatus ModuleRender::PreUpdate() {
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -138,14 +99,14 @@ UpdateStatus ModuleRender::PreUpdate() {
 }
 
 UpdateStatus ModuleRender::Update() {
-	// Draw grid lines
+	// Draw lines
 	glUseProgram(*App->programs->gridLinesProgram);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
 	DrawLineGrid();
 
-	// Draw baker house
+	// Draw model
 	glUseProgram(*App->programs->textureProgram);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
@@ -157,11 +118,10 @@ UpdateStatus ModuleRender::Update() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glClearColor(1.0F, 1.0F, 1.0F, 1.0F); 
 	glClear(GL_COLOR_BUFFER_BIT);
-
 	glUseProgram(*App->programs->screenProgram);
 	glBindVertexArray(quadVAO);
 	glDisable(GL_DEPTH_TEST);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	
+	glBindTexture(GL_TEXTURE_2D, renderTexture);	
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glUseProgram(0);
 	return UpdateStatus::CONTINUE;
@@ -181,16 +141,20 @@ bool ModuleRender::CleanUp() {
 
 void ModuleRender::WindowResized(unsigned int width, unsigned int height) {
 	glViewport(0, 0, width, height);
+	App->window->SetWidth(width);
+	App->window->SetHeight(height);
+	App->interfaces->SetEditorWidth(width);
+	App->interfaces->SetEditorHeight(height);
 
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
-	glGenTextures(1, &textureColorbuffer);
-	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glGenTextures(1, &renderTexture);
+	glBindTexture(GL_TEXTURE_2D, renderTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderTexture, 0);
 
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -205,8 +169,12 @@ void* ModuleRender::GetContext() const {
 	return context;
 }
 
+unsigned int ModuleRender::GetRenderTexture() const {
+	return renderTexture;
+}
+
 void ModuleRender::DrawLineGrid() {
-	// Lines white
+	// White lines
 	glLineWidth(1.0F);
 	float d = 200.0F;
 	glColor4f(1.F, 1.F, 1.F, 1.F);
@@ -257,7 +225,7 @@ void ModuleRender::DrawLineGrid() {
 	glLineWidth(1.0F);
 }
 
-const char* ModuleRender::GetSourceStr(GLenum source) {
+const char* ModuleRender::GetSourceStr(GLenum source) const {
 	switch (source) {
 	case GL_DEBUG_SOURCE_API: return "API";
 	case GL_DEBUG_SOURCE_WINDOW_SYSTEM: return "WINDOW";
@@ -269,7 +237,7 @@ const char* ModuleRender::GetSourceStr(GLenum source) {
 	}
 }
 
-const char* ModuleRender::GetTypeStr(GLenum type) {
+const char* ModuleRender::GetTypeStr(GLenum type) const {
 	switch (type) {
 	case GL_DEBUG_TYPE_ERROR: return "ERROR";
 	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "DEPRECATED";
@@ -284,7 +252,7 @@ const char* ModuleRender::GetTypeStr(GLenum type) {
 	}
 }
 
-const char* ModuleRender::GetSeverityStr(GLenum severity) {
+const char* ModuleRender::GetSeverityStr(GLenum severity) const {
 	switch (severity) {
 	case GL_DEBUG_SEVERITY_HIGH: return "HIGH";
 	case GL_DEBUG_SEVERITY_MEDIUM: return "MEDIUM";
@@ -296,9 +264,9 @@ const char* ModuleRender::GetSeverityStr(GLenum severity) {
 
 void __stdcall OpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	char tmp_string[4096];
-	const char* tmp_source = ModuleRender::GetSourceStr(source);
-	const char* tmp_type = ModuleRender::GetTypeStr(type);
-	const char* tmp_severity = ModuleRender::GetSeverityStr(severity);
+	const char* tmp_source = App->renderer->GetSourceStr(source);
+	const char* tmp_type = App->renderer->GetTypeStr(type);
+	const char* tmp_severity = App->renderer->GetSeverityStr(severity);
 	if (severity == GL_DEBUG_SEVERITY_HIGH) {
 		fprintf(stderr, "Aborting...\n");
 		//abort();

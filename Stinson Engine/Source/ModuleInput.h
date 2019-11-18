@@ -5,6 +5,8 @@
 #include "Point.h"
 #include <SDL_scancode.h>
 #include "../Libraries/MathGeoLib/MathGeoLib.h"
+
+#define MAX_KEYS 300
 #define NUM_MOUSE_BUTTONS 5
 
 typedef unsigned __int8 Uint8;

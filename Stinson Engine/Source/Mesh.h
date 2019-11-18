@@ -15,7 +15,7 @@ public:
 
 public:
 	struct MeshEntry {
-		MeshEntry(aiMesh *mesh, int index);
+		MeshEntry(aiMesh *mesh);
 		~MeshEntry();
 		void Render();
 

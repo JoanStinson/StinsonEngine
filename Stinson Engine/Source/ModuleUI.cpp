@@ -6,6 +6,7 @@
 #include "ModuleCamera.h"
 #include "ModuleModelLoader.h"
 #include "ModuleProgram.h"
+#include "ModuleInput.h"
 #include <string>
 #include <SDL.h>
 #include <il.h>
@@ -31,8 +32,12 @@ bool ModuleUI::Init() {
 	io->ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io->ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 	ImGui::StyleColorsDark();
-	ImGui_ImplSDL2_InitForOpenGL(App->window->window, App->renderer->GetContext());
+	ImGui_ImplSDL2_InitForOpenGL(&App->window->GetWindow(), App->renderer->GetContext());
 	ImGui_ImplOpenGL3_Init("#version 430 core");
+	width = App->window->GetWidth();
+	height = App->window->GetHeight();
+	screenWidth = App->window->GetDesktopWidth();
+	screenHeight = App->window->GetDesktopHeight();
 	return true;
 }
 
@@ -52,7 +57,7 @@ bool ModuleUI::Start() {
 
 UpdateStatus ModuleUI::PreUpdate() {
 	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(App->window->window);
+	ImGui_ImplSDL2_NewFrame(&App->window->GetWindow());
 	ImGui::NewFrame();
 	return UpdateStatus::CONTINUE;
 }
@@ -87,7 +92,7 @@ UpdateStatus ModuleUI::PostUpdate() {
 	ImGui::Render();
 	glViewport(0, 0, io->DisplaySize.x, io->DisplaySize.y);
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-	SDL_GL_SwapWindow(App->window->window);
+	SDL_GL_SwapWindow(&App->window->GetWindow());
 	return UpdateStatus::CONTINUE;
 }
 
@@ -103,11 +108,19 @@ void ModuleUI::ProcessEvent(const SDL_Event *event) const {
 	ImGui_ImplSDL2_ProcessEvent(event);
 }
 
+void ModuleUI::SetEditorWidth(int newWidth) {
+	width = newWidth;
+}
+
+void ModuleUI::SetEditorHeight(int newHeight) {
+	height = newHeight;
+}
+
 UpdateStatus ModuleUI::DrawMainBar() {
 	ImGui::BeginMainMenuBar();
 
 	if (ImGui::BeginMenu("File")) {
-		ImGui::CheckboxFlags("io.ConfigFlags: DockingEnable", (unsigned int *)&io->ConfigFlags, ImGuiConfigFlags_DockingEnable);
+		//ImGui::CheckboxFlags("io.ConfigFlags: DockingEnable", (unsigned int *)&io->ConfigFlags, ImGuiConfigFlags_DockingEnable);
 		if (ImGui::MenuItem("Quit", "Escape"))
 			return UpdateStatus::STOP;
 		ImGui::EndMenu();
@@ -122,7 +135,7 @@ UpdateStatus ModuleUI::DrawMainBar() {
 	}
 
 	if (ImGui::BeginMenu("Help")) {
-		ImGui::MenuItem((std::string("About ") + std::string(&engineName[0])).c_str(), nullptr, &showAboutWindow);
+		ImGui::MenuItem((std::string("About ") + std::string(TITLE)).c_str(), nullptr, &showAboutWindow);
 		ImGui::Separator();
 		if (ImGui::MenuItem("GitHub Repository"))
 			RequestBrowser("https://github.com/JoanStinson/Stinson_Engine");
@@ -162,15 +175,15 @@ void ModuleUI::DrawSceneWindow(bool *p_open) {
 
 	if (ImGui::Begin("Scene", p_open)) {
 		ImGui::GetWindowDrawList()->AddImage(
-			(void *)App->renderer->textureColorbuffer, ImVec2(ImGui::GetCursorScreenPos()),
-			ImVec2(ImGui::GetCursorScreenPos().x + App->window->GetWindowWidth() / 1.5, ImGui::GetCursorScreenPos().y + App->window->GetWindowHeight() / 1.5), ImVec2(0, 1), ImVec2(1, 0));
+			(void *)App->renderer->GetRenderTexture(), ImVec2(ImGui::GetCursorScreenPos()),
+			ImVec2(ImGui::GetCursorScreenPos().x + App->window->GetWidth() / 1.5, ImGui::GetCursorScreenPos().y + App->window->GetHeight() / 1.5), ImVec2(0, 1), ImVec2(1, 0));
 	}
 	ImGui::End();
 }
 
 void ModuleUI::DrawConfigWindow(bool *p_open) {
 	if (ImGui::Begin("Configuration", p_open)) {
-		ImGui::Text("Welcome to %s!", &engineName[0]);
+		ImGui::Text("Welcome to %s!", TITLE);
 		ImGui::Spacing();
 
 		if (ImGui::CollapsingHeader("Camera"))
@@ -179,8 +192,14 @@ void ModuleUI::DrawConfigWindow(bool *p_open) {
 		if (ImGui::CollapsingHeader("Hardware"))
 			DrawHardwareHeader();
 
+		if (ImGui::CollapsingHeader("Input"))
+			DrawInputHeader();
+
 		if (ImGui::CollapsingHeader("Performance"))
 			DrawPerformanceHeader();
+
+		if (ImGui::CollapsingHeader("Renderer"))
+			DrawRendererHeader();
 
 		if (ImGui::CollapsingHeader("Textures"))
 			DrawTexturesHeader();
@@ -209,8 +228,8 @@ void ModuleUI::DrawPropertiesWindow(bool *p_open) {
 }
 
 void ModuleUI::DrawAboutWindow(bool *p_open) {
-	if (ImGui::Begin((std::string("About ") + std::string(&engineName[0])).c_str(), p_open)) {
-		ImGui::Text(&engineName[0]);
+	if (ImGui::Begin((std::string("About ") + std::string(TITLE)).c_str(), p_open)) {
+		ImGui::Text(TITLE);
 		ImGui::SameLine();
 		ImGui::TextColored(YELLOW, "%s WIP", &version[0]);
 		ImGui::Separator();
@@ -221,7 +240,7 @@ void ModuleUI::DrawAboutWindow(bool *p_open) {
 		ImGui::SameLine();
 		ImGui::TextColored(PINK, "%s", &author[0]);
 		ImGui::Separator();
-		ImGui::Text("%s is licensed under the MIT License.", &engineName[0]);
+		ImGui::Text("%s is licensed under the MIT License.", TITLE);
 		if (ImGui::Button("GitHub Repository"))
 			RequestBrowser("https://github.com/JoanStinson/Stinson_Engine");
 		ImGui::SameLine();
@@ -322,10 +341,33 @@ void ModuleUI::DrawHardwareHeader() {
 	ImGui::TextColored(YELLOW, "%s", glGetString(GL_VERSION));
 }
 
+void ModuleUI::DrawInputHeader() {
+	ImGui::Text("Mouse Position: (%d, %d)", App->input->GetMousePosition().x, App->input->GetMousePosition().y);
+	ImGui::Text("Mouse Motion: (%d, %d)", App->input->GetMouseMotion().x, App->input->GetMouseMotion().y);
+	ImGui::Text("Mouse Wheel: %d", App->input->GetMouseWheel()->y);
+	ImGui::Text("Mouse Right Click: %d", App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KeyState::REPEAT);
+	ImGui::Text("Mouse Left Click: %d", App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KeyState::REPEAT);
+	ImGui::Text("Mouse Wheel Click: %d", App->input->GetMouseButtonDown(SDL_BUTTON_MIDDLE) == KeyState::REPEAT);
+	ImGui::Text("Keys Pressed:");
+	for (int i = 0; i < MAX_KEYS; ++i) {
+		if (App->input->GetKey(i) == KeyState::REPEAT) {
+			ImGui::SameLine();
+			char key = i;
+			if (key == -30) ImGui::Text("ALT");
+			else if (key == 39) ImGui::Text("0,");
+			else if (key > 29 && key < 39) ImGui::Text("%c,", key + 19);
+			else ImGui::Text("%c,", key + 61);
+		}
+	}
+}
+
 void ModuleUI::DrawPerformanceHeader() {
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0F / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	DrawLogFrames(fpsLog, ImGui::GetIO().Framerate, fpsTitle, sizeof(fpsTitle) / sizeof(fpsTitle[0]), "Framerate %.1f", "##framerate", 100.0F, fpsTime);
 	DrawLogFrames(msLog, 1000.0F / ImGui::GetIO().Framerate, msTitle, sizeof(msTitle) / sizeof(msTitle[0]), "Milliseconds %0.1f", "##milliseconds", 40.0F, msTime);
+}
+
+void ModuleUI::DrawRendererHeader() {
 }
 
 void ModuleUI::DrawTexturesHeader() {
@@ -405,18 +447,18 @@ void ModuleUI::DrawTexturesHeader() {
 	else ImGui::TextColored(RED, "INVALID");
 	if (ImGui::Checkbox("Checkers Texture", &checkers)) {
 		if (checkers)
-			App->model->ChangeTexture(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg"), false);
+			App->model->ChangeTexture(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg", App->model->activeTexture), false);
 		else
-			App->model->ChangeTexture(App->model->previousTexture, false);
+			App->model->ChangeTexture(App->model->previousTexture);
 	}
 }
 
 void ModuleUI::DrawWindowHeader() {
 	if (ImGui::SliderFloat("Brightness", &brightness, 0.0F, 1.0F))
 		App->window->SetWindowBrightness(brightness);
-	if (ImGui::SliderInt("Width", &width, 640, 1920))
+	if (ImGui::SliderInt("Width", &width, 0, screenWidth))
 		App->window->SetWindowSize(width, height);
-	if (ImGui::SliderInt("Height", &height, 480, 1080))
+	if (ImGui::SliderInt("Height", &height, 0, screenHeight))
 		App->window->SetWindowSize(width, height);
 	ImGui::Text("Refresh rate:");
 	ImGui::SameLine();

@@ -24,25 +24,21 @@ public:
 public:
 	void WindowResized(unsigned int width, unsigned int height);
 	void* GetContext() const;
-
-public:
-	unsigned int textureColorbuffer;
+	unsigned int GetRenderTexture() const;
 
 private:
 	void DrawLineGrid();
-	static const char* GetSourceStr(GLenum source);
-	static const char* GetTypeStr(GLenum type);
-	static const char* GetSeverityStr(GLenum severity);
+	const char* GetSourceStr(GLenum source) const;
+	const char* GetTypeStr(GLenum type) const;
+	const char* GetSeverityStr(GLenum severity) const;
 	friend void __stdcall OpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 
 private:
 	void* context = nullptr;
-	GLuint triangleVBO;
-	GLuint squareVBO;
-	GLuint squareIBO;
-	unsigned int framebuffer;
+	unsigned int fbo;
 	unsigned int rbo;
 	unsigned int quadVAO;
+	unsigned int renderTexture;
 };
 
 #endif // __MODULERENDER_H__

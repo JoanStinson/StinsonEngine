@@ -4,20 +4,36 @@
 #include <Importer.hpp>
 #include <postprocess.h>
 #include <scene.h>
+#include <Logger.hpp>
+#include <DefaultLogger.hpp>
+
+class myStream : public Assimp::LogStream {
+public:
+	// LOG assimp debug output to GUI console
+	void write(const char *message) {
+		LOG("%s", message);
+	}
+};
 
 Mesh::Mesh(const char *filename, unsigned int texture, unsigned int program) : filename(filename), texture(texture), program(program) {
+	// Assimp logger
+	Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
+	Assimp::DefaultLogger::get()->info("this is my info-call");
+	const unsigned int severity = Assimp::Logger::Debugging | Assimp::Logger::Info | Assimp::Logger::Err | Assimp::Logger::Warn;
+	Assimp::DefaultLogger::get()->attachStream(new myStream, severity);
+
+	// Assimp import model
 	Assimp::Importer importer;
 	const aiScene *scene = importer.ReadFile(filename, aiProcessPreset_TargetRealtime_MaxQuality);
 	if (scene == nullptr) {
 		LOG("Unable to load mesh %s\n", importer.GetErrorString());
 	}
 	else {
-		LOG("Loading model '%s' \n", filename);
-		LOG("Model contains %d meshes \n", scene->mNumMeshes);
 		for (int i = 0; i < scene->mNumMeshes; ++i) 
-			meshEntries.push_back(new Mesh::MeshEntry(scene->mMeshes[i], i+1));
-		LOG("Loaded model succesfully!\n");
+			meshEntries.push_back(new Mesh::MeshEntry(scene->mMeshes[i]));
 	}
+
+	Assimp::DefaultLogger::kill();
 }
 
 Mesh::~Mesh() {
@@ -46,7 +62,7 @@ void Mesh::Render(unsigned int meshTexture, unsigned int meshProgram) {
 		meshEntries[i]->Render();
 }
 
-Mesh::MeshEntry::MeshEntry(aiMesh *mesh, int index) {
+Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
 	vbo[(int)BUFFER::VERTEX] = 0;
 	vbo[(int)BUFFER::TEXCOORD] = 0;
 	vbo[(int)BUFFER::NORMAL] = 0;
@@ -57,8 +73,6 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh, int index) {
 
 	elementCount = mesh->mNumFaces * 3;
 
-	if (index < 10) { LOG("Loading mesh 0%d vertices\n", index); }
-	else { LOG("Loading mesh %d vertices\n", index); }
 	if (mesh->HasPositions()) {
 		float *vertices = new float[mesh->mNumVertices * 3];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -77,8 +91,6 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh, int index) {
 		delete[] vertices;
 	}
 
-	if (index < 10) { LOG("Loading mesh 0%d texture coords\n", index); }
-	else { LOG("Loading mesh %d texture coords\n", index); }
 	if (mesh->HasTextureCoords(0)) {
 		float *texCoords = new float[mesh->mNumVertices * 2];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -96,8 +108,6 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh, int index) {
 		delete[] texCoords;
 	}
 
-	if (index < 10) { LOG("Loading mesh 0%d normals\n", index); }
-	else { LOG("Loading mesh %d normals\n", index); }
 	if (mesh->HasNormals()) {
 		float *normals = new float[mesh->mNumVertices * 3];
 		for (int i = 0; i < mesh->mNumVertices; ++i) {
@@ -116,8 +126,6 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh, int index) {
 		delete[] normals;
 	}
 
-	if (index < 10) { LOG("Loading mesh 0%d indices\n", index); }
-	else { LOG("Loading mesh %d indices\n", index); }
 	if (mesh->HasFaces()) {
 		unsigned int *indices = new unsigned int[mesh->mNumFaces * 3];
 		for (int i = 0; i < mesh->mNumFaces; ++i) {

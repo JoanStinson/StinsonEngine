@@ -8,8 +8,7 @@
 #include <vector>
 
 union SDL_Event;
-//TODO have an UI for each model to display texture and model settings
-//TODO imgui texture of camera to window, use frame buffer
+
 class ModuleUI : public Module {
 public:
 	ModuleUI() {}
@@ -24,6 +23,8 @@ public:
 
 public:
 	void ProcessEvent(const SDL_Event *event) const;
+	void SetEditorWidth(int newWidth);
+	void SetEditorHeight(int newHeight);
 
 private:
 	UpdateStatus DrawMainBar();
@@ -34,7 +35,9 @@ private:
 
 	void DrawCameraHeader();
 	void DrawHardwareHeader();
+	void DrawInputHeader();
 	void DrawPerformanceHeader();
+	void DrawRendererHeader();
 	void DrawTexturesHeader();
 	void DrawWindowHeader();
 
@@ -49,19 +52,14 @@ private:
 	bool showSceneWindow = true;
 	bool showConsoleLogWindow = true;
 	bool showConfigWindow = true;
-	bool showPropertiesWindow = false;
+	bool showPropertiesWindow = true;
 	bool showDemoWindow = false;
 	bool showAboutWindow = false;
-	bool fullscreen = false;
-	bool resizable = true;
-	bool borderless = false;
-	bool fullDesktop = false;
 
-	bool showTriangle = false;
-	bool showSquare = true;
-	bool showSanicTexture = false;
-	bool showButterfliesTexture = true;
-	bool showLinkTexture = false;
+	bool fullscreen = FULLSCREEN;
+	bool resizable = RESIZABLE;
+	bool borderless = BORDERLESS;
+	bool fullDesktop = FULLSCREEN_DESKTOP;
 	bool showRepeat = false;
 	bool showMirroredRepeat = false;
 	bool showClampToEdge = false;
@@ -71,7 +69,6 @@ private:
 	bool showMipMaps = true;
 	bool checkers = false;
 
-	char engineName[40] = TITLE;
 	char version[12] = "1.0.0";
 	const char* description = "A 3D engine using C++ with OpenGL that tries\n"
 		"to mimic Unity's functionalities. It's a project\n"
@@ -86,12 +83,15 @@ private:
 	unsigned int currentTime;
 	unsigned int fpsTime = 0;
 	unsigned int msTime = 0;
-	int width = SCREEN_WIDTH;
-	int height = SCREEN_HEIGHT;
 
 	std::vector<float> fpsLog;
 	std::vector<float> msLog;
 	std::string caps;
+
+	int width;
+	int height;
+	int screenWidth;
+	int screenHeight;
 };
 
-#endif
+#endif // __MODULEUI_H__

@@ -5,6 +5,7 @@
 
 static ImGuiTextBuffer consoleBuf;
 static bool logPause = false;
+static bool scroll = false;
 
 void Log(const char file[], int line, const char *format, ...) {
 	static char tmp_string[4096];
@@ -13,7 +14,10 @@ void Log(const char file[], int line, const char *format, ...) {
 
 	va_start(ap, format);
 	vsprintf_s(tmp_string, 4096, format, ap);
-	if (!logPause) consoleBuf.appendfv(format, ap);
+	if (!logPause) {
+		consoleBuf.appendfv(format, ap);
+		scroll = true;
+	}
 	va_end(ap);
 	sprintf_s(tmp_string2, 4096, "\n%s(%d) : %s", file, line, tmp_string);
 	OutputDebugString((const wchar_t*)tmp_string2);
@@ -81,20 +85,18 @@ void DrawConsoleLogWindow(bool *p_open) {
 		if (coloredText) {
 
 			// Split buffer to lines
-			//if (!ElementInVector(strLines, std::string(consoleBuf.c_str()))) {
-				std::string strBuf = std::string(consoleBuf.c_str());
-				consoleBuf.clear();
-				std::string currLine;
-				for (unsigned i = 0; i < strBuf.size(); ++i) {
-					if (strBuf[i] != '\n')
-						currLine += strBuf[i];
-					else {
-						strLines.push_back(currLine);
-						currLine.clear();
-					}
+			std::string strBuf = std::string(consoleBuf.c_str());
+			consoleBuf.clear();
+			std::string currLine;
+			for (unsigned i = 0; i < strBuf.size(); ++i) {
+				if (strBuf[i] != '\n')
+					currLine += strBuf[i];
+				else {
+					strLines.push_back(currLine);
+					currLine.clear();
 				}
-				strBuf.clear();
-			//}
+			}
+			strBuf.clear();
 
 			// Draw each line
 			std::vector<std::string> previousLines;
@@ -116,7 +118,10 @@ void DrawConsoleLogWindow(bool *p_open) {
 			else ImGui::Text(consoleBuf.begin());
 		}
 
-		if (!logPause) ImGui::SetScrollHere(1.0F);
+		if (scroll) {
+			ImGui::SetScrollHere(1.0F);
+			scroll = false;
+		}
 		ImGui::EndChild();
 	}
 	ImGui::End();
