@@ -16,7 +16,7 @@ Application::Application() {
 	modules.push_back(camera = new ModuleCamera());
 	modules.push_back(renderer = new ModuleRender());
 	modules.push_back(programs = new ModuleProgram());
-	modules.push_back(model = new ModuleModelLoader());
+	modules.push_back(modelLoader = new ModuleModelLoader());
 	modules.push_back(input = new ModuleInput());
 	modules.push_back(interfaces = new ModuleUI());
 }

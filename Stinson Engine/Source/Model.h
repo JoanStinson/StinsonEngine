@@ -1,22 +1,22 @@
-#ifndef __MESH_H__
-#define __MESH_H__
+#ifndef __MODEL_H__
+#define __MODEL_H__
 
 #include <mesh.h>
 #include <vector>
 
 typedef unsigned int GLuint;
 
-class Mesh {
+class Model {
 public:
-	Mesh(const char *filename, unsigned int texture, unsigned int program);
-	~Mesh();
+	Model(const char *filename, unsigned int texture, unsigned int program);
+	~Model();
 	void Render();
 	void Render(unsigned int meshTexture, unsigned int meshProgram);
 
 public:
-	struct MeshEntry {
-		MeshEntry(aiMesh *mesh);
-		~MeshEntry();
+	struct Mesh {
+		Mesh(aiMesh *mesh);
+		~Mesh();
 		void Render();
 
 		GLuint vao;
@@ -30,7 +30,7 @@ public:
 	unsigned int program;
 
 private:
-	std::vector<MeshEntry*> meshEntries;
+	std::vector<Mesh*> meshes;
 };
 
-#endif // __MESH_H__
+#endif // __MODEL_H__

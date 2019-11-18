@@ -111,7 +111,7 @@ UpdateStatus ModuleRender::Update() {
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
-	App->model->RenderAllMeshes();
+	App->modelLoader->RenderAllMeshes();
 	glUseProgram(0);
 
 	// Draw framebuffer

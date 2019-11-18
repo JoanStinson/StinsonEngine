@@ -8,7 +8,7 @@ struct SDL_Texture;
 struct SDL_Renderer;
 struct SDL_Rect;
 struct ILinfo;
-class Mesh;
+class Model;
 
 class ModuleRender : public Module {
 public:

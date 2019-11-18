@@ -117,8 +117,8 @@ UpdateStatus ModuleInput::PreUpdate() {
 			else if (mesh == "i.fbx")
 				App->camera->center = math::float3(0.F, 0.85F, 2.4F);
 			std::string type = std::string(droppedFile).substr(std::string(droppedFile).length() - 3);
-			type == "fbx" ? App->model->ChangeMesh(droppedFile) : 
-				type == "dds" || type == "jpg" || type == "png" ? App->model->ChangeTexture(App->textures->Load(droppedFile, App->model->activeTexture)) : LOG("Incorrect format of dropped file!\n");
+			type == "fbx" ? App->modelLoader->ChangeMesh(droppedFile) : 
+				type == "dds" || type == "jpg" || type == "png" ? App->modelLoader->ChangeTexture(App->textures->Load(droppedFile, App->modelLoader->activeTexture)) : LOG("Incorrect format of dropped file!\n");
 			break;
 		}
 	}

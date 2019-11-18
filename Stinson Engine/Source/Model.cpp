@@ -1,4 +1,4 @@
-#include "Mesh.h"
+#include "Model.h"
 #include "Globals.h"
 #include <glew.h>
 #include <Importer.hpp>
@@ -15,7 +15,7 @@ public:
 	}
 };
 
-Mesh::Mesh(const char *filename, unsigned int texture, unsigned int program) : filename(filename), texture(texture), program(program) {
+Model::Model(const char *filename, unsigned int texture, unsigned int program) : filename(filename), texture(texture), program(program) {
 	// Assimp logger
 	Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
 	Assimp::DefaultLogger::get()->info("this is my info-call");
@@ -30,39 +30,39 @@ Mesh::Mesh(const char *filename, unsigned int texture, unsigned int program) : f
 	}
 	else {
 		for (int i = 0; i < scene->mNumMeshes; ++i) 
-			meshEntries.push_back(new Mesh::MeshEntry(scene->mMeshes[i]));
+			meshes.push_back(new Model::Mesh(scene->mMeshes[i]));
 	}
 
 	Assimp::DefaultLogger::kill();
 }
 
-Mesh::~Mesh() {
-	for (int i = 0; i < meshEntries.size(); ++i) 
-		delete meshEntries[i];
-	meshEntries.clear();
+Model::~Model() {
+	for (int i = 0; i < meshes.size(); ++i) 
+		delete meshes[i];
+	meshes.clear();
 }
 
-void Mesh::Render() {
+void Model::Render() {
 	glUseProgram(program);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glUniform1i(glGetUniformLocation(program, "texture0"), 0);
 
-	for (int i = 0; i < meshEntries.size(); ++i) 
-		meshEntries[i]->Render();
+	for (int i = 0; i < meshes.size(); ++i) 
+		meshes[i]->Render();
 }
 
-void Mesh::Render(unsigned int meshTexture, unsigned int meshProgram) {
+void Model::Render(unsigned int meshTexture, unsigned int meshProgram) {
 	glUseProgram(meshProgram);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, meshTexture);
 	glUniform1i(glGetUniformLocation(meshProgram, "texture0"), 0);
 
-	for (int i = 0; i < meshEntries.size(); ++i)
-		meshEntries[i]->Render();
+	for (int i = 0; i < meshes.size(); ++i)
+		meshes[i]->Render();
 }
 
-Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
+Model::Mesh::Mesh(aiMesh *mesh) {
 	vbo[(int)BUFFER::VERTEX] = 0;
 	vbo[(int)BUFFER::TEXCOORD] = 0;
 	vbo[(int)BUFFER::NORMAL] = 0;
@@ -148,7 +148,7 @@ Mesh::MeshEntry::MeshEntry(aiMesh *mesh) {
 	glBindVertexArray(0);
 }
 
-Mesh::MeshEntry::~MeshEntry() {
+Model::Mesh::~Mesh() {
 	if (vbo[(int)BUFFER::VERTEX]) {
 		glDeleteBuffers(1, &vbo[(int)BUFFER::VERTEX]);
 	}
@@ -164,7 +164,7 @@ Mesh::MeshEntry::~MeshEntry() {
 	glDeleteVertexArrays(1, &vao);
 }
 
-void Mesh::MeshEntry::Render() {
+void Model::Mesh::Render() {
 	glBindVertexArray(vao);
 	glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);

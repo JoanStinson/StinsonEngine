@@ -153,9 +153,6 @@
     <ClCompile Include="ModuleModelLoader.cpp">
       <Filter>Core Modules</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh.cpp">
-      <Filter>Components</Filter>
-    </ClCompile>
     <ClCompile Include="..\Libraries\ImGui\imgui.cpp">
       <Filter>Utils\ImGui</Filter>
     </ClCompile>
@@ -173,6 +170,9 @@
     </ClCompile>
     <ClCompile Include="..\Libraries\ImGui\imgui_widgets.cpp">
       <Filter>Utils\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Components</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -389,9 +389,6 @@
     <ClInclude Include="Point.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Components</Filter>
-    </ClInclude>
     <ClInclude Include="ModuleModelLoader.h">
       <Filter>Core Modules</Filter>
     </ClInclude>
@@ -418,6 +415,9 @@
     </ClInclude>
     <ClInclude Include="..\Libraries\ImGui\imstb_truetype.h">
       <Filter>Utils\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Components</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

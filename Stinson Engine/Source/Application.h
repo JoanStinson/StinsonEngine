@@ -32,7 +32,7 @@ public:
 	ModuleUI* interfaces = nullptr;
 	ModuleTextures* textures = nullptr;
 	ModuleCamera* camera = nullptr;
-	ModuleModelLoader* model = nullptr;
+	ModuleModelLoader* modelLoader = nullptr;
 
 private:
 	std::list<Module*> modules;

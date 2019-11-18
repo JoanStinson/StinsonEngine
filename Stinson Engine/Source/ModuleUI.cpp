@@ -52,6 +52,8 @@ bool ModuleUI::Start() {
 	if (SDL_HasSSE3()) caps += "SSE3, ";
 	if (SDL_HasSSE41()) caps += "SSE41, ";
 	if (SDL_HasSSE42()) caps += "SSE42";
+
+	text = App->textures->Load("../Resources/Assets/Textures/Checkers.jpg");
 	return true;
 }
 
@@ -173,6 +175,7 @@ void ModuleUI::DrawSceneWindow(bool *p_open) {
 	//}
 	//ImGui::End();
 
+	//TODO if change window, generate new texture of fbo with new size
 	if (ImGui::Begin("Scene", p_open)) {
 		ImGui::GetWindowDrawList()->AddImage(
 			(void *)App->renderer->GetRenderTexture(), ImVec2(ImGui::GetCursorScreenPos()),
@@ -368,6 +371,7 @@ void ModuleUI::DrawPerformanceHeader() {
 }
 
 void ModuleUI::DrawRendererHeader() {
+	//TODO draw: glclear color, opengl options e.g ccw, etc..
 }
 
 void ModuleUI::DrawTexturesHeader() {
@@ -428,29 +432,44 @@ void ModuleUI::DrawTexturesHeader() {
 	ImGui::Separator();
 	ImGui::Text("Width:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->model->activeTexture->Width);
+	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->activeTexture->Width);
 	ImGui::Text("Height:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->model->activeTexture->Height);
+	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->activeTexture->Height);
 	ImGui::Text("Depth:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%d", App->model->activeTexture->Depth);
+	ImGui::TextColored(LIGHT_BLUE, "%d", App->modelLoader->activeTexture->Depth);
 	ImGui::Text("BPP:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%d", App->model->activeTexture->Bpp);
+	ImGui::TextColored(LIGHT_BLUE, "%d", App->modelLoader->activeTexture->Bpp);
 	ImGui::Text("Format:");
 	ImGui::SameLine();
-	ILenum format = App->model->activeTexture->Type;
+	ILenum format = App->modelLoader->activeTexture->Type;
 	if (format == (int)IL_PNG)		ImGui::TextColored(LIGHT_BLUE, "PNG");
 	else if (format == (int)IL_JPG) ImGui::TextColored(LIGHT_BLUE, "JPG");
 	else if (format == (int)IL_DDS) ImGui::TextColored(LIGHT_BLUE, "DDS");
 	else ImGui::TextColored(RED, "INVALID");
 	if (ImGui::Checkbox("Checkers Texture", &checkers)) {
 		if (checkers)
-			App->model->ChangeTexture(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg", App->model->activeTexture), false);
+			App->modelLoader->ChangeTexture(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg", App->modelLoader->activeTexture), false);
 		else
-			App->model->ChangeTexture(App->model->previousTexture);
+			App->modelLoader->ChangeTexture(App->modelLoader->previousTexture);
 	}
+	//TODO que es mostri imatge de la texture a sa guiiii
+	//loop textures
+	if (App->modelLoader->textures.size() > 0) {
+		for (int i = 0; i < App->modelLoader->textures.size(); ++i) {
+			if (ImGui::ImageButton((void*)(intptr_t)App->modelLoader->textures[i], ImVec2(100, 100))) {
+				if (i % 2 == 0) ImGui::SameLine();
+				App->modelLoader->ChangeTexture(App->modelLoader->textures[i], false);
+			}
+		}
+	}
+
+
+	//if (ImGui::ImageButton((void*)(intptr_t)text, ImVec2(100, 100))) {
+	//	App->modelLoader->ChangeTexture(text, false);
+	//}
 }
 
 void ModuleUI::DrawWindowHeader() {

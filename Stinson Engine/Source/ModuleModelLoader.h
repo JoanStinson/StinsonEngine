@@ -2,7 +2,7 @@
 #define __MODULEMODELLOADER_H__
 
 #include "Module.h"
-#include "Mesh.h"
+#include "Model.h"
 #include "../Libraries/MathGeoLib/MathGeoLib.h"
 #include <vector>
 #include <il.h>
@@ -23,9 +23,11 @@ public:
 	void RenderAllMeshes();
 
 public:
-	Mesh* activeMesh = nullptr;
+	Model* activeMesh = nullptr;
 	ILinfo* activeTexture = nullptr;
 	unsigned int previousTexture;
+	std::vector<unsigned int> textures;
+	std::vector<Model*> models;
 };
 
 #endif // __MODULEMODELLOADER_H__

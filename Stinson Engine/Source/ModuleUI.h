@@ -46,6 +46,8 @@ private:
 	void RequestBrowser(const char *link) const;
 
 private:
+	//ILinfo image;
+	unsigned int text;
 	ImGuiIO* io = nullptr;
 	ImGuiID dockspaceID = 0;
 
