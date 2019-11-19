@@ -3,6 +3,7 @@
 
 #include "Module.h"
 #include <glew.h>
+#include "../Libraries/MathGeoLib/MathGeoLib.h"
 
 struct SDL_Texture;
 struct SDL_Renderer;
@@ -26,6 +27,12 @@ public:
 	void* GetContext() const;
 	unsigned int GetRenderTexture() const;
 
+public:
+	math::float4 clearColor = math::float4(0.0F, 0.0F, 0.0F, 1.0F);
+	bool drawGridLines = true;
+	bool drawGeometry = true;
+	bool drawFbo = true;
+
 private:
 	void DrawLineGrid();
 	const char* GetSourceStr(GLenum source) const;
@@ -39,6 +46,7 @@ private:
 	unsigned int rbo;
 	unsigned int quadVAO;
 	unsigned int renderTexture;
+
 };
 
 #endif // __MODULERENDER_H__

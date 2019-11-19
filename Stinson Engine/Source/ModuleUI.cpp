@@ -9,10 +9,10 @@
 #include "ModuleInput.h"
 #include <string>
 #include <SDL.h>
+#include <glew.h>
 #include <il.h>
 #include <ilu.h>
 #include <ilut.h>
-#include <glew.h>
 
 #define RED ImVec4(1.0F, 0.0F, 0.0F, 1.0F)
 #define GREEN ImVec4(0.0F, 1.0F, 0.0F, 1.0F)
@@ -52,8 +52,6 @@ bool ModuleUI::Start() {
 	if (SDL_HasSSE3()) caps += "SSE3, ";
 	if (SDL_HasSSE41()) caps += "SSE41, ";
 	if (SDL_HasSSE42()) caps += "SSE42";
-
-	text = App->textures->Load("../Resources/Assets/Textures/Checkers.jpg");
 	return true;
 }
 
@@ -129,10 +127,10 @@ UpdateStatus ModuleUI::DrawMainBar() {
 	}
 
 	if (ImGui::BeginMenu("Window")) {
-		ImGui::MenuItem("Configuration", "Ctrl+Alt+C", &showConfigWindow);
-		ImGui::MenuItem("Console", "Ctrl+Shift+C", &showConsoleLogWindow);
-		ImGui::MenuItem("Properties", "Ctrl+Shift+P", &showPropertiesWindow);
-		ImGui::MenuItem("Scene", "Ctrl+Shift+S", &showSceneWindow);
+		ImGui::MenuItem("Configuration", nullptr, &showConfigWindow);
+		ImGui::MenuItem("Console", nullptr, &showConsoleLogWindow);
+		ImGui::MenuItem("Properties", nullptr, &showPropertiesWindow);
+		ImGui::MenuItem("Scene", nullptr, &showSceneWindow);
 		ImGui::EndMenu();
 	}
 
@@ -186,8 +184,9 @@ void ModuleUI::DrawSceneWindow(bool *p_open) {
 
 void ModuleUI::DrawConfigWindow(bool *p_open) {
 	if (ImGui::Begin("Configuration", p_open)) {
-		ImGui::Text("Welcome to %s!", TITLE);
-		ImGui::Spacing();
+
+		if (ImGui::CollapsingHeader("Application"))
+			DrawPerformanceHeader();
 
 		if (ImGui::CollapsingHeader("Camera"))
 			DrawCameraHeader();
@@ -197,9 +196,6 @@ void ModuleUI::DrawConfigWindow(bool *p_open) {
 
 		if (ImGui::CollapsingHeader("Input"))
 			DrawInputHeader();
-
-		if (ImGui::CollapsingHeader("Performance"))
-			DrawPerformanceHeader();
 
 		if (ImGui::CollapsingHeader("Renderer"))
 			DrawRendererHeader();
@@ -217,13 +213,79 @@ void ModuleUI::DrawPropertiesWindow(bool *p_open) {
 	if (ImGui::Begin("Properties", p_open)) {
 
 		if (ImGui::CollapsingHeader("Transform")) {
-
+			static float pos[3] = { 0.0F, 0.0F, 0.0F };
+			ImGui::DragFloat3("Position", pos);
+			ImGui::DragFloat3("Rotation", pos);
+			ImGui::DragFloat3("Scale", pos);
 		}
+
 		if (ImGui::CollapsingHeader("Geometry")) {
-
+			ImGui::Text("Meshes: %d", App->modelLoader->GetActiveModel().GetNumMeshes());
+			ImGui::Text("Polys: %d", App->modelLoader->GetActiveModel().GetNumPolys());
+			ImGui::Text("Vertices: %d", App->modelLoader->GetActiveModel().GetNumVertices());
 		}
-		if (ImGui::CollapsingHeader("Texture")) {
 
+		if (ImGui::CollapsingHeader("Texture")) {
+			if (ImGui::BeginMenu("Wrapping Mode")) {
+				if (ImGui::Checkbox("Repeat", &showRepeat)) {
+				}
+				ImGui::SameLine();
+				HelpMarker("Repeats the texture image");
+				if (ImGui::Checkbox("Mirrored Repeat", &showMirroredRepeat)) {
+				}
+				ImGui::SameLine();
+				HelpMarker("Same as repeat, but mirrors the image with each repeat");
+				if (ImGui::Checkbox("Clamp to Edge", &showClampToEdge)) {
+				}
+				ImGui::SameLine();
+				HelpMarker("Clamps the coordinates between 0 and 1. The result is that higher coordinates become clamped to the edge, resulting in a stretched edge pattern");
+				if (ImGui::Checkbox("Clamp to Border", &showClampToBorder)) {
+				}
+				ImGui::SameLine();
+				HelpMarker("Coordinates outside the range are now given a user-specified border color");
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Filtering Mode")) {
+				if (ImGui::Checkbox("Nearest", &showNearest)) {
+				}
+				ImGui::SameLine();
+				HelpMarker("OpenGL selects the pixel which center is closest to the texture coordinate");
+				if (ImGui::Checkbox("Linear", &showLinear)) {
+				}
+				ImGui::SameLine();
+				HelpMarker("Takes an interpolated value from the texture coordinate's neighboring texels, approximating a color between the texels");
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("MipMaps", &showMipMaps)) {
+				if (ImGui::Checkbox("Yes", &showMipMaps)) {
+				}
+				ImGui::SameLine();
+				HelpMarker("After a certain distance threshold from the viewer, OpenGL will use a different mipmap texture that best suits the distance to the object. Because the object is far away, the smaller resolution will not be noticeable to the user. Also, mipmaps have the added bonus feature that they're good for performance as well.");
+				ImGui::EndMenu();
+			}
+			ImGui::Separator();
+			ImGui::Text("Width:");
+			ImGui::SameLine();
+			ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->GetActiveModel().imageInfo.Width);
+			ImGui::Text("Height:");
+			ImGui::SameLine();
+			ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->GetActiveModel().imageInfo.Height);
+			ImGui::Text("Depth:");
+			ImGui::SameLine();
+			ImGui::TextColored(LIGHT_BLUE, "%d", App->modelLoader->GetActiveModel().imageInfo.Depth);
+			ImGui::Text("BPP:");
+			ImGui::SameLine();
+			ImGui::TextColored(LIGHT_BLUE, "%d", App->modelLoader->GetActiveModel().imageInfo.Bpp);
+			ImGui::Text("Format:");
+			ImGui::SameLine();
+			ILenum format = App->modelLoader->GetActiveModel().imageInfo.Type;
+			if (format == (int)IL_PNG)		ImGui::TextColored(LIGHT_BLUE, "PNG");
+			else if (format == (int)IL_JPG) ImGui::TextColored(LIGHT_BLUE, "JPG");
+			else if (format == (int)IL_DDS) ImGui::TextColored(LIGHT_BLUE, "DDS");
+			else ImGui::TextColored(RED, "INVALID");
+			ImGui::ImageButton((void*)(intptr_t)App->modelLoader->GetActiveModel().texture, ImVec2(100, 100));
 		}
 
 	}
@@ -258,8 +320,12 @@ void ModuleUI::DrawAboutWindow(bool *p_open) {
 void ModuleUI::DrawCameraHeader() {
 	static float fov = App->camera->frustum.verticalFov;
 	static float aspectRatio = App->camera->aspectRatio;
-	static ImVec4 color = ImVec4(114.0F / 255.0F, 144.0F / 255.0F, 154.0F / 255.0F, 200.0F / 255.0F);
 
+	if (ImGui::Button("Reset")) {
+		App->camera->ResetCamera();
+		fov = App->camera->frustum.verticalFov;
+		aspectRatio = App->camera->aspectRatio;
+	}
 	if (ImGui::DragFloat3("Front", (float*)&App->camera->frustum.front, 0.1F)) {
 		App->camera->CalculateMatrixes();
 	}
@@ -284,15 +350,24 @@ void ModuleUI::DrawCameraHeader() {
 	if (ImGui::DragFloat("Aspect Ratio", &aspectRatio, 0.1F)) {
 		App->camera->SetAspectRatio(aspectRatio);
 	}
-	if (ImGui::Button("Reset Camera")) {
-		App->camera->ResetCamera();
-		fov = App->camera->frustum.verticalFov;
-		aspectRatio = App->camera->aspectRatio;
-		color = ImVec4(114.0F / 255.0F, 144.0F / 255.0F, 154.0F / 255.0F, 200.0F / 255.0F);
-	}
 }
 
 void ModuleUI::DrawHardwareHeader() {
+	static SDL_version compiled;
+	SDL_VERSION(&compiled);
+	ImGui::Text("SDL Version:");
+	ImGui::SameLine();
+	ImGui::TextColored(YELLOW, "%d.%d.%d", compiled.major, compiled.minor, compiled.patch);
+	ImGui::Text("Glew Version:");
+	ImGui::SameLine();
+	ImGui::TextColored(YELLOW, "%s", glewGetString(GLEW_VERSION));
+	ImGui::Text("DevIL Version:");
+	ImGui::SameLine();
+	ImGui::TextColored(YELLOW, "%d.%d.%d", (ilGetInteger(IL_VERSION_NUM) % 1000) / 100, (ilGetInteger(IL_VERSION_NUM) % 100) / 10, ilGetInteger(IL_VERSION_NUM) % 10);
+	ImGui::Text("OpenGL Version:");
+	ImGui::SameLine();
+	ImGui::TextColored(YELLOW, "%s", glGetString(GL_VERSION));
+	ImGui::Separator();
 	ImGui::Text("CPUs:");
 	ImGui::SameLine();
 	ImGui::TextColored(YELLOW, "%d", SDL_GetCPUCount());
@@ -327,27 +402,13 @@ void ModuleUI::DrawHardwareHeader() {
 	ImGui::Text("VRAM Reserved:");
 	ImGui::SameLine();
 	ImGui::TextColored(YELLOW, "%.1f Mb", 0.0F);
-	ImGui::Separator();
-	static SDL_version compiled;
-	SDL_VERSION(&compiled);
-	ImGui::Text("SDL Version:");
-	ImGui::SameLine();
-	ImGui::TextColored(YELLOW, "%d.%d.%d", compiled.major, compiled.minor, compiled.patch);
-	ImGui::Text("Glew Version:");
-	ImGui::SameLine();
-	ImGui::TextColored(YELLOW, "%s", glewGetString(GLEW_VERSION));
-	ImGui::Text("DevIL Version:");
-	ImGui::SameLine();
-	ImGui::TextColored(YELLOW, "%d.%d.%d", (ilGetInteger(IL_VERSION_NUM) % 1000) / 100, (ilGetInteger(IL_VERSION_NUM) % 100) / 10, ilGetInteger(IL_VERSION_NUM) % 10);
-	ImGui::Text("OpenGL Version:");
-	ImGui::SameLine();
-	ImGui::TextColored(YELLOW, "%s", glGetString(GL_VERSION));
 }
 
 void ModuleUI::DrawInputHeader() {
 	ImGui::Text("Mouse Position: (%d, %d)", App->input->GetMousePosition().x, App->input->GetMousePosition().y);
 	ImGui::Text("Mouse Motion: (%d, %d)", App->input->GetMouseMotion().x, App->input->GetMouseMotion().y);
 	ImGui::Text("Mouse Wheel: %d", App->input->GetMouseWheel()->y);
+	ImGui::Separator();
 	ImGui::Text("Mouse Right Click: %d", App->input->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KeyState::REPEAT);
 	ImGui::Text("Mouse Left Click: %d", App->input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KeyState::REPEAT);
 	ImGui::Text("Mouse Wheel Click: %d", App->input->GetMouseButtonDown(SDL_BUTTON_MIDDLE) == KeyState::REPEAT);
@@ -365,38 +426,81 @@ void ModuleUI::DrawInputHeader() {
 }
 
 void ModuleUI::DrawPerformanceHeader() {
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0F / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::Text("%s average %.3f ms/frame (%.1f FPS)", TITLE, 1000.0F / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	DrawLogFrames(fpsLog, ImGui::GetIO().Framerate, fpsTitle, sizeof(fpsTitle) / sizeof(fpsTitle[0]), "Framerate %.1f", "##framerate", 100.0F, fpsTime);
 	DrawLogFrames(msLog, 1000.0F / ImGui::GetIO().Framerate, msTitle, sizeof(msTitle) / sizeof(msTitle[0]), "Milliseconds %0.1f", "##milliseconds", 40.0F, msTime);
 }
 
 void ModuleUI::DrawRendererHeader() {
-	//TODO draw: glclear color, opengl options e.g ccw, etc..
+	static math::float4 clearColorCopy = App->renderer->clearColor;
+	static ImVec4 color = ImVec4(clearColorCopy.x, clearColorCopy.y, clearColorCopy.z, clearColorCopy.w);
+	ImGui::Text("Clear Color:");
+	ImGui::SameLine();
+	if (ImGui::ColorEdit4("Choose Clear Color##3", (float*)&color, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel)) {
+		App->renderer->clearColor = math::float4(color.x, color.y, color.z, color.w);
+	}
+	ImGui::SameLine();
+	HelpMarker("Click to open color picker and change clear color");
+	ImGui::Separator();
+	ImGui::Text("Draw:");
+	ImGui::Checkbox("Geometry", &App->renderer->drawGeometry);
+	ImGui::SameLine();
+	ImGui::Checkbox("Lines", &App->renderer->drawGridLines);
+	ImGui::SameLine();
+	ImGui::Checkbox("Scene", &App->renderer->drawFbo);
+	ImGui::Separator();
+	ImGui::Text("Options:");
+	if (ImGui::Checkbox("Blend", &blend)) {
+		if (blend) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+		else {
+			glDisable(GL_BLEND);
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Face Culling", &faceCulling)) {
+		if (faceCulling) {
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_CULL_FACE);
+			glDisable(GL_TEXTURE_2D);
+		}
+		else {
+			glEnable(GL_DEPTH_TEST);
+			glFrontFace(GL_CCW);
+			glEnable(GL_CULL_FACE);
+			glEnable(GL_TEXTURE_2D);
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Checkbox("OpenGL Debug", &openglDebug)) {
+		if (openglDebug) {
+			glEnable(GL_DEBUG_OUTPUT);
+			glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		}
+		else {
+			glDisable(GL_DEBUG_OUTPUT);
+			glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		}
+	}
 }
 
 void ModuleUI::DrawTexturesHeader() {
 	if (ImGui::BeginMenu("Wrapping Mode")) {
 		if (ImGui::Checkbox("Repeat", &showRepeat)) {
-			//if (showRepeat)
-				//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 1, 0, true);
 		}
 		ImGui::SameLine();
 		HelpMarker("Repeats the texture image");
 		if (ImGui::Checkbox("Mirrored Repeat", &showMirroredRepeat)) {
-			//if (showMirroredRepeat)
-				//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 2, 0, true);
 		}
 		ImGui::SameLine();
 		HelpMarker("Same as repeat, but mirrors the image with each repeat");
 		if (ImGui::Checkbox("Clamp to Edge", &showClampToEdge)) {
-			//if (showClampToEdge)
-				//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 3, 0, true);
 		}
 		ImGui::SameLine();
 		HelpMarker("Clamps the coordinates between 0 and 1. The result is that higher coordinates become clamped to the edge, resulting in a stretched edge pattern");
 		if (ImGui::Checkbox("Clamp to Border", &showClampToBorder)) {
-			//if (showClampToBorder)
-				//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, true);
 		}
 		ImGui::SameLine();
 		HelpMarker("Coordinates outside the range are now given a user-specified border color");
@@ -405,24 +509,18 @@ void ModuleUI::DrawTexturesHeader() {
 
 	if (ImGui::BeginMenu("Filtering Mode")) {
 		if (ImGui::Checkbox("Nearest", &showNearest)) {
-			//if (showNearest)
-				//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 1, false);
 		}
 		ImGui::SameLine();
 		HelpMarker("OpenGL selects the pixel which center is closest to the texture coordinate");
 		if (ImGui::Checkbox("Linear", &showLinear)) {
-			//if (showLinear)
-				//App->renderer->texture = App->textures->Load("../Resources/Assets/link.dds", App->renderer->imageInfo, 4, 0, false);
 		}
 		ImGui::SameLine();
 		HelpMarker("Takes an interpolated value from the texture coordinate's neighboring texels, approximating a color between the texels");
 		ImGui::EndMenu();
 	}
 
-	if (ImGui::BeginMenu("Mipmaps", &showMipMaps)) {
+	if (ImGui::BeginMenu("MipMaps", &showMipMaps)) {
 		if (ImGui::Checkbox("Yes", &showMipMaps)) {
-			//if (showMipMaps)
-				//App->model->ChangeTexture(App->textures->Load(App->model->activeMesh->filename, App->model->activeTexture, 4, 0, true));
 		}
 		ImGui::SameLine();
 		HelpMarker("After a certain distance threshold from the viewer, OpenGL will use a different mipmap texture that best suits the distance to the object. Because the object is far away, the smaller resolution will not be noticeable to the user. Also, mipmaps have the added bonus feature that they're good for performance as well.");
@@ -430,70 +528,63 @@ void ModuleUI::DrawTexturesHeader() {
 	}
 
 	ImGui::Separator();
+	ImGui::Text("Active Texture:");
 	ImGui::Text("Width:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->activeTexture->Width);
+	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->GetActiveModel().imageInfo.Width);
 	ImGui::Text("Height:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->activeTexture->Height);
+	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->GetActiveModel().imageInfo.Height);
 	ImGui::Text("Depth:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%d", App->modelLoader->activeTexture->Depth);
+	ImGui::TextColored(LIGHT_BLUE, "%d", App->modelLoader->GetActiveModel().imageInfo.Depth);
 	ImGui::Text("BPP:");
 	ImGui::SameLine();
-	ImGui::TextColored(LIGHT_BLUE, "%d", App->modelLoader->activeTexture->Bpp);
+	ImGui::TextColored(LIGHT_BLUE, "%d", App->modelLoader->GetActiveModel().imageInfo.Bpp);
 	ImGui::Text("Format:");
 	ImGui::SameLine();
-	ILenum format = App->modelLoader->activeTexture->Type;
+	ILenum format = App->modelLoader->GetActiveModel().imageInfo.Type;
 	if (format == (int)IL_PNG)		ImGui::TextColored(LIGHT_BLUE, "PNG");
 	else if (format == (int)IL_JPG) ImGui::TextColored(LIGHT_BLUE, "JPG");
 	else if (format == (int)IL_DDS) ImGui::TextColored(LIGHT_BLUE, "DDS");
 	else ImGui::TextColored(RED, "INVALID");
-	if (ImGui::Checkbox("Checkers Texture", &checkers)) {
-		if (checkers)
-			App->modelLoader->ChangeTexture(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg", App->modelLoader->activeTexture), false);
-		else
-			App->modelLoader->ChangeTexture(App->modelLoader->previousTexture);
-	}
-	//TODO que es mostri imatge de la texture a sa guiiii
-	//loop textures
+	ImGui::ImageButton((void*)(intptr_t)App->modelLoader->GetActiveModel().texture, ImVec2(100, 100));
+	ImGui::Separator();
+	ImGui::Text("Change Texture:");
 	if (App->modelLoader->textures.size() > 0) {
 		for (int i = 0; i < App->modelLoader->textures.size(); ++i) {
-			if (ImGui::ImageButton((void*)(intptr_t)App->modelLoader->textures[i], ImVec2(100, 100))) {
-				if (i % 2 == 0) ImGui::SameLine();
-				App->modelLoader->ChangeTexture(App->modelLoader->textures[i], false);
+			if (ImGui::ImageButton((void*)(intptr_t)App->modelLoader->textures[i].first, ImVec2(100, 100))) {
+				App->modelLoader->SetActiveTexture(App->modelLoader->textures[i].first);
+				App->modelLoader->SetActiveImageInfo(App->modelLoader->textures[i].second);
 			}
+			if (i % 2 == 0) 
+				ImGui::SameLine();
 		}
 	}
-
-
-	//if (ImGui::ImageButton((void*)(intptr_t)text, ImVec2(100, 100))) {
-	//	App->modelLoader->ChangeTexture(text, false);
-	//}
 }
 
 void ModuleUI::DrawWindowHeader() {
+	ImGui::Text("Refresh rate:");
+	ImGui::SameLine();
+	SDL_DisplayMode current;
+	SDL_GetCurrentDisplayMode(0, &current);
+	ImGui::TextColored(ImVec4(1.0F, 1.0F, 0.0F, 1.0F), "%d", current.refresh_rate);
+	if (ImGui::Checkbox("Borderless", &borderless))
+		App->window->SetBorderless(borderless);
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Resizable", &resizable))
+		App->window->SetResizable(resizable);
+	if (ImGui::Checkbox("Fullscreen", &fullscreen))
+		App->window->SetFullscreen(fullscreen);
+	ImGui::SameLine();
+	if (ImGui::Checkbox("Full Desktop", &fullDesktop))
+		App->window->SetFullDesktop(fullDesktop);
 	if (ImGui::SliderFloat("Brightness", &brightness, 0.0F, 1.0F))
 		App->window->SetWindowBrightness(brightness);
 	if (ImGui::SliderInt("Width", &width, 0, screenWidth))
 		App->window->SetWindowSize(width, height);
 	if (ImGui::SliderInt("Height", &height, 0, screenHeight))
 		App->window->SetWindowSize(width, height);
-	ImGui::Text("Refresh rate:");
-	ImGui::SameLine();
-	SDL_DisplayMode current;
-	SDL_GetCurrentDisplayMode(0, &current);
-	ImGui::TextColored(ImVec4(1.0F, 1.0F, 0.0F, 1.0F), "%d", current.refresh_rate);
-	if (ImGui::Checkbox("Fullscreen", &fullscreen))
-		App->window->SetFullscreen(fullscreen);
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Resizable", &resizable))
-		App->window->SetResizable(resizable);
-	if (ImGui::Checkbox("Borderless", &borderless))
-		App->window->SetBorderless(borderless);
-	ImGui::SameLine();
-	if (ImGui::Checkbox("Full Desktop", &fullDesktop))
-		App->window->SetFullDesktop(fullDesktop);
 }
 
 void ModuleUI::DrawLogFrames(std::vector<float> &frames, float value, char *titleBuf, int titleSize, const char *title, const char *histogramTitle, float maxHeight, unsigned int &time) {

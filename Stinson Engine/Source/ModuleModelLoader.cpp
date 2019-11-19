@@ -4,13 +4,6 @@
 #include "ModuleTextures.h"
 #include "ModuleCamera.h"
 
-template <typename T>
-bool ElementInVector(const std::vector<T> &vec, const T &element) {
-	for (unsigned i = 0; i < vec.size(); ++i)
-		if (vec[i] == element) return true;
-	return false;
-}
-
 ModuleModelLoader::ModuleModelLoader() {
 }
 
@@ -19,36 +12,45 @@ ModuleModelLoader::~ModuleModelLoader() {
 
 bool ModuleModelLoader::Init() {
 	LOG("Init Model Loader\n");
-	activeTexture = new ILinfo();
-	activeMesh = new Model ("../Resources/Assets/Models/BakerHouse.fbx", App->textures->Load("../Resources/Assets/Textures/BakerHouse.png", activeTexture), *App->programs->textureProgram);
-	previousTexture = activeMesh->texture;
+	ILinfo tempinfo;
+	activeModel = new Model ("../Resources/Assets/Models/BakerHouse.fbx", App->textures->Load("../Resources/Assets/Textures/BakerHouse.png", &tempinfo), *App->programs->textureProgram);
+	activeModel->imageInfo = tempinfo;
+
+	ILinfo checkersImage;
+	ILinfo bakerImage;
+	ILinfo marioImage;
+	ILinfo luigiImage;
+
+	textures.push_back(std::pair<unsigned int, ILinfo>(App->textures->Load("../Resources/Assets/Textures/Checkers.jpg", &checkersImage), checkersImage));
+	textures.push_back(std::pair<unsigned int, ILinfo>(App->textures->Load("../Resources/Assets/Textures/BakerHouse.png", &bakerImage), bakerImage));
+	textures.push_back(std::pair<unsigned int, ILinfo>(App->textures->Load("../Resources/Assets/Textures/Mario.dds", &marioImage), marioImage));
+	textures.push_back(std::pair<unsigned int, ILinfo>(App->textures->Load("../Resources/Assets/Textures/Luigi.dds", &luigiImage), luigiImage));
 	return true;
 }
 
 bool ModuleModelLoader::CleanUp() {
-	delete activeMesh;
+	delete activeModel;
 	return true;
 }
 
-void ModuleModelLoader::ChangeMesh(const char *filename) {
-	activeMesh = new Model(filename, activeMesh->texture, activeMesh->program);
+Model& ModuleModelLoader::GetActiveModel() const {
+	return *activeModel;
+}
+
+void ModuleModelLoader::SetActiveModel(const char *filename) {
+	activeModel = new Model(filename, activeModel->texture, activeModel->program);
 	App->camera->CalculateMatrixes();
 	App->camera->Focus();
 }
 
-void ModuleModelLoader::ChangeTexture(unsigned int texture, bool saveTexture) {
-	if (activeMesh->texture != texture) {
-		activeMesh->texture = texture;
-		if (saveTexture)
-			previousTexture = texture;
-
-		//TODO loop and check if its not repeated
-		if (!ElementInVector(textures, texture)) {
-			textures.push_back(texture);
-		}
-	}
+void ModuleModelLoader::SetActiveTexture(unsigned int texture) {
+	activeModel->texture = texture;
 }
 
-void ModuleModelLoader::RenderAllMeshes() {
-	activeMesh->Render();
+void ModuleModelLoader::SetActiveImageInfo(ILinfo imageInfo) {
+	activeModel->imageInfo = imageInfo;
+}
+
+void ModuleModelLoader::RenderAllModels() {
+	activeModel->Render();
 }

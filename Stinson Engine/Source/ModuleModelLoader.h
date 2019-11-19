@@ -18,15 +18,18 @@ public:
 	bool CleanUp() override;
 
 public:
-	void ChangeMesh(const char *filename);
-	void ChangeTexture(unsigned int texture, bool saveTexture = true);
-	void RenderAllMeshes();
+	Model& GetActiveModel() const;
+
+	void SetActiveModel(const char *filename);
+	void SetActiveTexture(unsigned int texture);
+	void SetActiveImageInfo(ILinfo imageInfo);
+	void RenderAllModels();
 
 public:
-	Model* activeMesh = nullptr;
-	ILinfo* activeTexture = nullptr;
-	unsigned int previousTexture;
-	std::vector<unsigned int> textures;
+	std::vector<std::pair<unsigned int, ILinfo>> textures;
+
+private:
+	Model* activeModel = nullptr;
 	std::vector<Model*> models;
 };
 

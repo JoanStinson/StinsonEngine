@@ -46,8 +46,6 @@ private:
 	void RequestBrowser(const char *link) const;
 
 private:
-	//ILinfo image;
-	unsigned int text;
 	ImGuiIO* io = nullptr;
 	ImGuiID dockspaceID = 0;
 
@@ -69,7 +67,10 @@ private:
 	bool showNearest = false;
 	bool showLinear = true;
 	bool showMipMaps = true;
-	bool checkers = false;
+
+	bool faceCulling = true;
+	bool blend = true;
+	bool openglDebug = false;
 
 	char version[12] = "1.0.0";
 	const char* description = "A 3D engine using C++ with OpenGL that tries\n"

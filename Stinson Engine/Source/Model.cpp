@@ -1,6 +1,5 @@
 #include "Model.h"
 #include "Globals.h"
-#include <glew.h>
 #include <Importer.hpp>
 #include <postprocess.h>
 #include <scene.h>
@@ -26,11 +25,15 @@ Model::Model(const char *filename, unsigned int texture, unsigned int program) :
 	Assimp::Importer importer;
 	const aiScene *scene = importer.ReadFile(filename, aiProcessPreset_TargetRealtime_MaxQuality);
 	if (scene == nullptr) {
-		LOG("Unable to load mesh %s\n", importer.GetErrorString());
+		LOG("Unable to load model %s\n", importer.GetErrorString());
 	}
 	else {
-		for (int i = 0; i < scene->mNumMeshes; ++i) 
+		numMeshes = scene->mNumMeshes;
+		for (int i = 0; i < scene->mNumMeshes; ++i) {
 			meshes.push_back(new Model::Mesh(scene->mMeshes[i]));
+			numPolys += meshes[i]->polysCount;
+			numVertices += meshes[i]->verticesCount;
+		}
 	}
 
 	Assimp::DefaultLogger::kill();
@@ -52,26 +55,39 @@ void Model::Render() {
 		meshes[i]->Render();
 }
 
-void Model::Render(unsigned int meshTexture, unsigned int meshProgram) {
-	glUseProgram(meshProgram);
+void Model::Render(unsigned int modelTexture, unsigned int modelProgram) {
+	glUseProgram(modelProgram);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, meshTexture);
-	glUniform1i(glGetUniformLocation(meshProgram, "texture0"), 0);
+	glBindTexture(GL_TEXTURE_2D, modelTexture);
+	glUniform1i(glGetUniformLocation(modelProgram, "texture0"), 0);
 
 	for (int i = 0; i < meshes.size(); ++i)
 		meshes[i]->Render();
 }
 
+unsigned int Model::GetNumMeshes() const {
+	return numMeshes;
+}
+
+unsigned int Model::GetNumPolys() const {
+	return numPolys;
+}
+
+unsigned int Model::GetNumVertices() const {
+	return numVertices;
+}
+
 Model::Mesh::Mesh(aiMesh *mesh) {
-	vbo[(int)BUFFER::VERTEX] = 0;
-	vbo[(int)BUFFER::TEXCOORD] = 0;
-	vbo[(int)BUFFER::NORMAL] = 0;
-	vbo[(int)BUFFER::INDEX] = 0;
+	vbo[VERTEX] = 0;
+	vbo[TEXCOORD] = 0;
+	vbo[NORMAL] = 0;
+	vbo[INDEX] = 0;
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	elementCount = mesh->mNumFaces * 3;
+	polysCount = mesh->mNumFaces * 3;
+	verticesCount = mesh->mNumVertices * 3;
 
 	if (mesh->HasPositions()) {
 		float *vertices = new float[mesh->mNumVertices * 3];
@@ -81,10 +97,9 @@ Model::Mesh::Mesh(aiMesh *mesh) {
 			vertices[i * 3 + 2] = mesh->mVertices[i].z;
 		}
 
-		glGenBuffers(1, &vbo[(int)BUFFER::VERTEX]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[(int)BUFFER::VERTEX]);
+		glGenBuffers(1, &vbo[VERTEX]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[VERTEX]);
 		glBufferData(GL_ARRAY_BUFFER, 3 * mesh->mNumVertices * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
-
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 		glEnableVertexAttribArray(0);
 
@@ -98,10 +113,9 @@ Model::Mesh::Mesh(aiMesh *mesh) {
 			texCoords[i * 2 + 1] = mesh->mTextureCoords[0][i].y;
 		}
 
-		glGenBuffers(1, &vbo[(int)BUFFER::TEXCOORD]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[(int)BUFFER::TEXCOORD]);
+		glGenBuffers(1, &vbo[TEXCOORD]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[TEXCOORD]);
 		glBufferData(GL_ARRAY_BUFFER, 2 * mesh->mNumVertices * sizeof(GLfloat), texCoords, GL_STATIC_DRAW);
-
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 		glEnableVertexAttribArray(1);
 
@@ -116,10 +130,9 @@ Model::Mesh::Mesh(aiMesh *mesh) {
 			normals[i * 3 + 2] = mesh->mNormals[i].z;
 		}
 
-		glGenBuffers(1, &vbo[(int)BUFFER::NORMAL]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[(int)BUFFER::NORMAL]);
+		glGenBuffers(1, &vbo[NORMAL]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[NORMAL]);
 		glBufferData(GL_ARRAY_BUFFER, 3 * mesh->mNumVertices * sizeof(GLfloat), normals, GL_STATIC_DRAW);
-
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 		glEnableVertexAttribArray(2);
 
@@ -134,10 +147,9 @@ Model::Mesh::Mesh(aiMesh *mesh) {
 			indices[i * 3 + 2] = mesh->mFaces[i].mIndices[2];
 		}
 
-		glGenBuffers(1, &vbo[(int)BUFFER::INDEX]);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[(int)BUFFER::INDEX]);
+		glGenBuffers(1, &vbo[INDEX]);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[INDEX]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * mesh->mNumFaces * sizeof(GLuint), indices, GL_STATIC_DRAW);
-
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, NULL);
 		glEnableVertexAttribArray(3);
 
@@ -149,23 +161,19 @@ Model::Mesh::Mesh(aiMesh *mesh) {
 }
 
 Model::Mesh::~Mesh() {
-	if (vbo[(int)BUFFER::VERTEX]) {
-		glDeleteBuffers(1, &vbo[(int)BUFFER::VERTEX]);
-	}
-	if (vbo[(int)BUFFER::TEXCOORD]) {
-		glDeleteBuffers(1, &vbo[(int)BUFFER::TEXCOORD]);
-	}
-	if (vbo[(int)BUFFER::NORMAL]) {
-		glDeleteBuffers(1, &vbo[(int)BUFFER::NORMAL]);
-	}
-	if (vbo[(int)BUFFER::INDEX]) {
-		glDeleteBuffers(1, &vbo[(int)BUFFER::INDEX]);
-	}
+	if (vbo[VERTEX]) 
+		glDeleteBuffers(1, &vbo[VERTEX]);
+	if (vbo[TEXCOORD]) 
+		glDeleteBuffers(1, &vbo[TEXCOORD]);
+	if (vbo[NORMAL]) 
+		glDeleteBuffers(1, &vbo[NORMAL]);
+	if (vbo[INDEX]) 
+		glDeleteBuffers(1, &vbo[INDEX]);
 	glDeleteVertexArrays(1, &vao);
 }
 
 void Model::Mesh::Render() {
 	glBindVertexArray(vao);
-	glDrawElements(GL_TRIANGLES, elementCount, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, polysCount, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }

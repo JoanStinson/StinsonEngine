@@ -109,16 +109,16 @@ UpdateStatus ModuleInput::PreUpdate() {
 
 		case SDL_DROPFILE:
 			const char* droppedFile = event.drop.file;
-			std::string mesh = std::string(droppedFile).substr(std::string(droppedFile).length() - 5);
-			if (mesh == "e.fbx")
+			std::string model = std::string(droppedFile).substr(std::string(droppedFile).length() - 5);
+			if (model == "e.fbx")
 				App->camera->center = math::float3(0.F, 1.75F, 6.5F);
-			else if (mesh == "o.fbx")
+			else if (model == "o.fbx")
 				App->camera->center = math::float3(0.F, 0.75F, 2.2F);
-			else if (mesh == "i.fbx")
+			else if (model == "i.fbx")
 				App->camera->center = math::float3(0.F, 0.85F, 2.4F);
 			std::string type = std::string(droppedFile).substr(std::string(droppedFile).length() - 3);
-			type == "fbx" ? App->modelLoader->ChangeMesh(droppedFile) : 
-				type == "dds" || type == "jpg" || type == "png" ? App->modelLoader->ChangeTexture(App->textures->Load(droppedFile, App->modelLoader->activeTexture)) : LOG("Incorrect format of dropped file!\n");
+			type == "fbx" ? App->modelLoader->SetActiveModel(droppedFile) : 
+				type == "dds" || type == "jpg" || type == "png" ? App->modelLoader->SetActiveTexture(App->textures->Load(droppedFile, &App->modelLoader->GetActiveModel().imageInfo)) : LOG("Incorrect format of dropped file!\n");
 			break;
 		}
 	}

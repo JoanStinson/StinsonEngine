@@ -6,7 +6,7 @@
 #include "ModuleCamera.h"
 #include "ModuleModelLoader.h"
 #include "ModuleUI.h"
-#include "Mesh.h"
+#include "Model.h"
 #include <SDL.h>
 #include <il.h>
 #include <ilu.h>
@@ -41,8 +41,8 @@ bool ModuleRender::Init() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glViewport(0, 0, App->window->GetWidth(), App->window->GetHeight());
 
-	glEnable(GL_DEBUG_OUTPUT);
-	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	//glEnable(GL_DEBUG_OUTPUT);
+	//glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(&OpenGLErrorFunction, nullptr);
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
 
@@ -91,8 +91,10 @@ bool ModuleRender::Init() {
 }
 
 UpdateStatus ModuleRender::PreUpdate() {
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+	if (drawFbo) {
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	}
+	glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	return UpdateStatus::CONTINUE;
@@ -100,30 +102,37 @@ UpdateStatus ModuleRender::PreUpdate() {
 
 UpdateStatus ModuleRender::Update() {
 	// Draw lines
-	glUseProgram(*App->programs->gridLinesProgram);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
-	DrawLineGrid();
+	if (drawGridLines) {
+		glUseProgram(*App->programs->gridLinesProgram);
+		glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(*App->programs->gridLinesProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
+		DrawLineGrid();
+	}
 
 	// Draw model
-	glUseProgram(*App->programs->textureProgram);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
-	App->modelLoader->RenderAllMeshes();
-	glUseProgram(0);
+	if (drawGeometry) {
+		glUseProgram(*App->programs->textureProgram);
+		glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "model"), 1, GL_TRUE, &App->camera->GetModelMatrix()[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "view"), 1, GL_TRUE, &App->camera->GetViewMatrix()[0][0]);
+		glUniformMatrix4fv(glGetUniformLocation(*App->programs->textureProgram, "proj"), 1, GL_TRUE, &App->camera->GetProjectionMatrix()[0][0]);
+		App->modelLoader->RenderAllModels();
+		glUseProgram(0);
+	}
 
 	// Draw framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glClearColor(1.0F, 1.0F, 1.0F, 1.0F); 
-	glClear(GL_COLOR_BUFFER_BIT);
-	glUseProgram(*App->programs->screenProgram);
-	glBindVertexArray(quadVAO);
-	glDisable(GL_DEPTH_TEST);
-	glBindTexture(GL_TEXTURE_2D, renderTexture);	
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glUseProgram(0);
+	if (drawFbo) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glUseProgram(*App->programs->screenProgram);
+		glBindVertexArray(quadVAO);
+		glDisable(GL_DEPTH_TEST);
+		glBindTexture(GL_TEXTURE_2D, renderTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glUseProgram(0);
+	}
+
 	return UpdateStatus::CONTINUE;
 }
 
@@ -273,5 +282,5 @@ void __stdcall OpenGLErrorFunction(GLenum source, GLenum type, GLuint id, GLenum
 	}
 	sprintf_s(tmp_string, 4095, "<Severity:%s> <Source:%s> <Type:%s> <ID:%d> <Message:%s>\n", tmp_severity, tmp_source, tmp_type, id, message);
 	OutputDebugString((const wchar_t*)tmp_string);
-	//LOG(tmp_string);
+	LOG(tmp_string);
 }
