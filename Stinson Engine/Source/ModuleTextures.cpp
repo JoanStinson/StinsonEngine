@@ -22,7 +22,7 @@ bool ModuleTextures::CleanUp() {
 }
 
 GLuint ModuleTextures::Load(const char *filename) {
-	GLuint texture;
+	GLuint texture = NULL;
 	ILenum error;
 
 	ILuint image = ilGenImage();
@@ -49,12 +49,12 @@ GLuint ModuleTextures::Load(const char *filename) {
 		}
 		else {
 			error = ilGetError();
-			LOG("Image conversion failed - IL reports error: %s - %s", std::to_string(error), iluErrorString(error));
+			LOG("Image conversion failed - IL reports error: %s - %s\n", std::to_string(error).c_str(), iluErrorString(error));
 		}
 	}
 	else {
 		error = ilGetError();
-		LOG("Image load failed - IL reports error: %s - %s", std::to_string(error), iluErrorString(error));
+		LOG("Image load failed - IL reports error: %s - %s\n", std::to_string(error).c_str(), iluErrorString(error));
 	}
 
 	ilDeleteImage(image);
@@ -62,7 +62,7 @@ GLuint ModuleTextures::Load(const char *filename) {
 }
 
 GLuint ModuleTextures::Load(const char *filename, ILinfo *imageInfo) {
-	GLuint texture;
+	GLuint texture = NULL;
 	ILenum error;
 
 	ILuint image = ilGenImage();
@@ -88,12 +88,12 @@ GLuint ModuleTextures::Load(const char *filename, ILinfo *imageInfo) {
 		}
 		else {
 			error = ilGetError();
-			LOG("Image conversion failed - IL reports error: %s - %s", std::to_string(error), iluErrorString(error));
+			LOG("Image conversion failed - IL reports error: %s - %s\n", std::to_string(error).c_str(), iluErrorString(error));
 		}
 	}
 	else {
 		error = ilGetError();
-		LOG("Image load failed - IL reports error: %s - %s", std::to_string(error), iluErrorString(error));
+		LOG("Image load failed - IL reports error: %s - %s\n", std::to_string(error).c_str(), iluErrorString(error));
 	}
 
 	ilDeleteImage(image);
@@ -101,7 +101,7 @@ GLuint ModuleTextures::Load(const char *filename, ILinfo *imageInfo) {
 }
 
 GLuint ModuleTextures::Load(const char *filename, ILinfo *imageInfo, GLuint wrap, bool filterNearest, bool useMipMaps) {
-	GLuint texture;
+	GLuint texture = NULL;
 	ILenum error;
 
 	ILuint image = ilGenImage();
@@ -146,17 +146,17 @@ GLuint ModuleTextures::Load(const char *filename, ILinfo *imageInfo, GLuint wrap
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			}
 
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (unsigned)ilGetInteger(IL_IMAGE_WIDTH), (unsigned)ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ilGetInteger(IL_IMAGE_WIDTH), ilGetInteger(IL_IMAGE_HEIGHT), 0, GL_RGBA, GL_UNSIGNED_BYTE, ilGetData());
 			if (useMipMaps) glGenerateMipmap(GL_TEXTURE_2D);
 		}
 		else {
 			error = ilGetError();
-			LOG("Image conversion failed - IL reports error: %s - %s", std::to_string(error), iluErrorString(error));
+			LOG("Image conversion failed - IL reports error: %s - %s\n", std::to_string(error).c_str(), iluErrorString(error));
 		}
 	}
 	else {
 		error = ilGetError();
-		LOG("Image load failed - IL reports error: %s - %s", std::to_string(error), iluErrorString(error));
+		LOG("Image load failed - IL reports error: %s - %s\n", std::to_string(error).c_str(), iluErrorString(error));
 	}
 
 	ilDeleteImage(image);

@@ -51,6 +51,54 @@ void ModuleModelLoader::SetActiveImageInfo(ILinfo imageInfo) {
 	activeModel->imageInfo = imageInfo;
 }
 
+void ModuleModelLoader::HandleDroppedFile(const char *droppedFile) {
+	std::string modelName = std::string(droppedFile).substr(std::string(droppedFile).length() - 5);
+
+	if (modelName == "e.fbx") {
+		App->camera->center = math::float3(0.F, 1.75F, 6.5F);
+		App->modelLoader->SetActiveModel(droppedFile);
+		SearchFBXFile(droppedFile, 21, "BakerHouse.png");
+	}
+	else if (modelName == "o.fbx") {
+		App->camera->center = math::float3(0.F, 0.75F, 2.2F);
+		App->modelLoader->SetActiveModel(droppedFile);
+		SearchFBXFile(droppedFile, 16, "Mario.dds");
+	}
+	else if (modelName == "i.fbx") {
+		App->camera->center = math::float3(0.F, 0.85F, 2.4F);
+		App->modelLoader->SetActiveModel(droppedFile);
+		SearchFBXFile(droppedFile, 16, "Luigi.dds");
+	}
+	else {
+		std::string type = std::string(droppedFile).substr(std::string(droppedFile).length() - 3);
+		if (type == "dds" || type == "jpg" || type == "png")
+			App->modelLoader->SetActiveTexture(App->textures->Load(droppedFile, &App->modelLoader->GetActiveModel().imageInfo));
+	}
+}
+
+void ModuleModelLoader::SearchFBXFile(const char *droppedFile, int pathOffset, const char *name) {
+	std::string path(droppedFile);
+	path.erase(path.end() - 3, path.end());
+
+	LOG("Trying to find matching texture on FBX path '%s'\n", path.c_str());
+	std::string format = std::string(name).substr(std::string(name).length() - 3);
+	path += format;
+
+	if (App->textures->Load(path.c_str()) != NULL)
+		App->modelLoader->SetActiveTexture(App->textures->Load(path.c_str(), &App->modelLoader->GetActiveModel().imageInfo));
+	else {
+		LOG("Trying to find matching texture on 'Textures\\' folder '%s'\n", path.c_str());
+		path.erase(path.end() - pathOffset, path.end());
+
+		std::string nameStr = name;
+		nameStr.erase(nameStr.end() - 4, nameStr.end());
+		path += "Textures\\" + nameStr + "." + format;
+
+		if (App->textures->Load(path.c_str()) != NULL)
+			App->modelLoader->SetActiveTexture(App->textures->Load(path.c_str(), &App->modelLoader->GetActiveModel().imageInfo));
+	}
+}
+
 void ModuleModelLoader::RenderAllModels() {
 	activeModel->Render();
 }

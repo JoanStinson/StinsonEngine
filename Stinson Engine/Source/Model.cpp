@@ -28,8 +28,15 @@ Model::Model(const char *filename, unsigned int texture, unsigned int program) :
 		LOG("Unable to load model %s\n", importer.GetErrorString());
 	}
 	else {
+		// Get model transformation
+		aiMatrix4x4 transform = scene->mRootNode->mTransformation;
+		translate = math::float3(transform.a4, transform.b4, transform.c4);
+		rotate = math::float3(transform.d1, transform.d2, transform.d3);
+		scale = math::float3(transform.a1, transform.b2, transform.c3);
+
+		// Process all meshes from model
 		numMeshes = scene->mNumMeshes;
-		for (int i = 0; i < scene->mNumMeshes; ++i) {
+		for (int i = 0; i < numMeshes; ++i) {
 			meshes.push_back(new Model::Mesh(scene->mMeshes[i]));
 			numPolys += meshes[i]->polysCount;
 			numVertices += meshes[i]->verticesCount;
@@ -40,7 +47,7 @@ Model::Model(const char *filename, unsigned int texture, unsigned int program) :
 }
 
 Model::~Model() {
-	for (int i = 0; i < meshes.size(); ++i) 
+	for (int i = 0; i < meshes.size(); ++i)
 		delete meshes[i];
 	meshes.clear();
 }
@@ -51,7 +58,7 @@ void Model::Render() {
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glUniform1i(glGetUniformLocation(program, "texture0"), 0);
 
-	for (int i = 0; i < meshes.size(); ++i) 
+	for (int i = 0; i < meshes.size(); ++i)
 		meshes[i]->Render();
 }
 
@@ -86,8 +93,8 @@ Model::Mesh::Mesh(aiMesh *mesh) {
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	polysCount = mesh->mNumFaces * 3;
-	verticesCount = mesh->mNumVertices * 3;
+	polysCount = mesh->mNumFaces;
+	verticesCount = mesh->mNumVertices;
 
 	if (mesh->HasPositions()) {
 		float *vertices = new float[mesh->mNumVertices * 3];
@@ -161,19 +168,19 @@ Model::Mesh::Mesh(aiMesh *mesh) {
 }
 
 Model::Mesh::~Mesh() {
-	if (vbo[VERTEX]) 
+	if (vbo[VERTEX])
 		glDeleteBuffers(1, &vbo[VERTEX]);
-	if (vbo[TEXCOORD]) 
+	if (vbo[TEXCOORD])
 		glDeleteBuffers(1, &vbo[TEXCOORD]);
-	if (vbo[NORMAL]) 
+	if (vbo[NORMAL])
 		glDeleteBuffers(1, &vbo[NORMAL]);
-	if (vbo[INDEX]) 
+	if (vbo[INDEX])
 		glDeleteBuffers(1, &vbo[INDEX]);
 	glDeleteVertexArrays(1, &vao);
 }
 
 void Model::Mesh::Render() {
 	glBindVertexArray(vao);
-	glDrawElements(GL_TRIANGLES, polysCount, GL_UNSIGNED_INT, nullptr);
+	glDrawElements(GL_TRIANGLES, polysCount * 3, GL_UNSIGNED_INT, nullptr);
 	glBindVertexArray(0);
 }

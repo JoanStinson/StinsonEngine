@@ -213,10 +213,9 @@ void ModuleUI::DrawPropertiesWindow(bool *p_open) {
 	if (ImGui::Begin("Properties", p_open)) {
 
 		if (ImGui::CollapsingHeader("Transform")) {
-			static float pos[3] = { 0.0F, 0.0F, 0.0F };
-			ImGui::DragFloat3("Position", pos);
-			ImGui::DragFloat3("Rotation", pos);
-			ImGui::DragFloat3("Scale", pos);
+			ImGui::Text("Position: (%.3f, %.3f, %.3f)", App->modelLoader->GetActiveModel().translate.x, App->modelLoader->GetActiveModel().translate.y, App->modelLoader->GetActiveModel().translate.z);
+			ImGui::Text("Rotation: (%.3f, %.3f, %.3f)", App->modelLoader->GetActiveModel().rotate.x, App->modelLoader->GetActiveModel().rotate.y, App->modelLoader->GetActiveModel().rotate.z);
+			ImGui::Text("Scale: (%.3f, %.3f, %.3f)", App->modelLoader->GetActiveModel().scale.x, App->modelLoader->GetActiveModel().scale.y, App->modelLoader->GetActiveModel().scale.z);
 		}
 
 		if (ImGui::CollapsingHeader("Geometry")) {
@@ -226,46 +225,15 @@ void ModuleUI::DrawPropertiesWindow(bool *p_open) {
 		}
 
 		if (ImGui::CollapsingHeader("Texture")) {
-			if (ImGui::BeginMenu("Wrapping Mode")) {
-				if (ImGui::Checkbox("Repeat", &showRepeat)) {
-				}
-				ImGui::SameLine();
-				HelpMarker("Repeats the texture image");
-				if (ImGui::Checkbox("Mirrored Repeat", &showMirroredRepeat)) {
-				}
-				ImGui::SameLine();
-				HelpMarker("Same as repeat, but mirrors the image with each repeat");
-				if (ImGui::Checkbox("Clamp to Edge", &showClampToEdge)) {
-				}
-				ImGui::SameLine();
-				HelpMarker("Clamps the coordinates between 0 and 1. The result is that higher coordinates become clamped to the edge, resulting in a stretched edge pattern");
-				if (ImGui::Checkbox("Clamp to Border", &showClampToBorder)) {
-				}
-				ImGui::SameLine();
-				HelpMarker("Coordinates outside the range are now given a user-specified border color");
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("Filtering Mode")) {
-				if (ImGui::Checkbox("Nearest", &showNearest)) {
-				}
-				ImGui::SameLine();
-				HelpMarker("OpenGL selects the pixel which center is closest to the texture coordinate");
-				if (ImGui::Checkbox("Linear", &showLinear)) {
-				}
-				ImGui::SameLine();
-				HelpMarker("Takes an interpolated value from the texture coordinate's neighboring texels, approximating a color between the texels");
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("MipMaps", &showMipMaps)) {
-				if (ImGui::Checkbox("Yes", &showMipMaps)) {
-				}
-				ImGui::SameLine();
-				HelpMarker("After a certain distance threshold from the viewer, OpenGL will use a different mipmap texture that best suits the distance to the object. Because the object is far away, the smaller resolution will not be noticeable to the user. Also, mipmaps have the added bonus feature that they're good for performance as well.");
-				ImGui::EndMenu();
-			}
-			ImGui::Separator();
+			ImGui::Text("Wrapping Mode:");
+			ImGui::SameLine();
+			ImGui::TextColored(LIGHT_BLUE, "Clamp to Border");
+			ImGui::Text("Filtering Mode:");
+			ImGui::SameLine();
+			ImGui::TextColored(LIGHT_BLUE, "Linear");
+			ImGui::Text("MipMaps:");
+			ImGui::SameLine();
+			ImGui::TextColored(LIGHT_BLUE, "Yes");
 			ImGui::Text("Width:");
 			ImGui::SameLine();
 			ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->GetActiveModel().imageInfo.Width);
@@ -285,7 +253,7 @@ void ModuleUI::DrawPropertiesWindow(bool *p_open) {
 			else if (format == (int)IL_JPG) ImGui::TextColored(LIGHT_BLUE, "JPG");
 			else if (format == (int)IL_DDS) ImGui::TextColored(LIGHT_BLUE, "DDS");
 			else ImGui::TextColored(RED, "INVALID");
-			ImGui::ImageButton((void*)(intptr_t)App->modelLoader->GetActiveModel().texture, ImVec2(100, 100));
+			ImGui::Image((void*)(intptr_t)App->modelLoader->GetActiveModel().texture, ImVec2(100, 100));
 		}
 
 	}
@@ -487,6 +455,7 @@ void ModuleUI::DrawRendererHeader() {
 }
 
 void ModuleUI::DrawTexturesHeader() {
+	ImGui::Text("Active Texture:");
 	if (ImGui::BeginMenu("Wrapping Mode")) {
 		if (ImGui::Checkbox("Repeat", &showRepeat)) {
 		}
@@ -527,8 +496,6 @@ void ModuleUI::DrawTexturesHeader() {
 		ImGui::EndMenu();
 	}
 
-	ImGui::Separator();
-	ImGui::Text("Active Texture:");
 	ImGui::Text("Width:");
 	ImGui::SameLine();
 	ImGui::TextColored(LIGHT_BLUE, "%dpx", App->modelLoader->GetActiveModel().imageInfo.Width);
@@ -548,7 +515,7 @@ void ModuleUI::DrawTexturesHeader() {
 	else if (format == (int)IL_JPG) ImGui::TextColored(LIGHT_BLUE, "JPG");
 	else if (format == (int)IL_DDS) ImGui::TextColored(LIGHT_BLUE, "DDS");
 	else ImGui::TextColored(RED, "INVALID");
-	ImGui::ImageButton((void*)(intptr_t)App->modelLoader->GetActiveModel().texture, ImVec2(100, 100));
+	ImGui::Image((void*)(intptr_t)App->modelLoader->GetActiveModel().texture, ImVec2(100, 100));
 	ImGui::Separator();
 	ImGui::Text("Change Texture:");
 	if (App->modelLoader->textures.size() > 0) {

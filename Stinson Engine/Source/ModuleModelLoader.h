@@ -23,6 +23,8 @@ public:
 	void SetActiveModel(const char *filename);
 	void SetActiveTexture(unsigned int texture);
 	void SetActiveImageInfo(ILinfo imageInfo);
+	void HandleDroppedFile(const char *droppedFile);
+	void SearchFBXFile(const char *droppedFile, int pathOffset, const char *name);
 	void RenderAllModels();
 
 public:

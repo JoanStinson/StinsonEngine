@@ -205,12 +205,10 @@ void ModuleCamera::Orbit() {
 		yaw = rotSpeed * speedScale;
 
 		if (MOUSE_MOVE_LEFT) {
-			//model = model * math::float3x3::RotateY(-yaw);
 			frustum.pos = frustum.pos * math::float3x3::RotateY(-yaw);
 			view = LookAt(frustum.pos, math::float3::zero, frustum.up);
 		}
 		else if (MOUSE_MOVE_RIGHT) {
-			//model = model * math::float3x3::RotateY(yaw);
 			frustum.pos = frustum.pos * math::float3x3::RotateY(yaw);
 			view = LookAt(frustum.pos, math::float3::zero, frustum.up);
 		}
@@ -220,14 +218,10 @@ void ModuleCamera::Orbit() {
 		pitch = rotSpeed * speedScale;
 
 		if (MOUSE_MOVE_UP) {
-			//model = model * math::float3x3::RotateX(pitch);
-			//frustum.pos = frustum.pos * math::float3x3::RotateX(pitch);
 			frustum.pos = frustum.pos * math::float3x3::RotateAxisAngle(frustum.WorldRight(), pitch);
 			view = LookAt(frustum.pos, math::float3::zero, frustum.up);
 		}
 		else if (MOUSE_MOVE_DOWN) {
-			//model = model * math::float3x3::RotateX(-pitch);
-			//frustum.pos = frustum.pos * math::float3x3::RotateX(-pitch);
 			frustum.pos = frustum.pos * math::float3x3::RotateAxisAngle(frustum.WorldRight(), -pitch);
 			view = LookAt(frustum.pos, math::float3::zero, frustum.up);
 		}

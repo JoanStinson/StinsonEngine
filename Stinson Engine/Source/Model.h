@@ -7,6 +7,7 @@
 #include <il.h>
 #include <ilu.h>
 #include <ilut.h>
+#include "../Libraries/MathGeoLib/MathGeoLib.h"
 
 class Model {
 public:
@@ -24,6 +25,9 @@ public:
 	unsigned int texture;
 	unsigned int program;
 	ILinfo imageInfo;
+	math::float3 translate;
+	math::float3 rotate;
+	math::float3 scale;
 
 private:
 	struct Mesh {
