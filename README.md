@@ -36,6 +36,7 @@ Model Viewer
 
 ## Credits
 
+GitHub Repo: [Stinson_Engine](https://github.com/JoanStinson/Stinson_Engine)
 Author: [Joan Ginard Mateo](https://github.com/JoanStinson)
 
 ## License
