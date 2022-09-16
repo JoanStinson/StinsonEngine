@@ -3,6 +3,27 @@
 A 3D engine using C++ with OpenGL that tries to mimic Unity's functionalities.
 
 <p align="center">
+  <a>
+    <img alt="Made With OpenGL" src="https://img.shields.io/badge/made%20with-OpenGL-57b9d3.svg?logo=OpenGL">
+  </a>
+  <a>
+    <img alt="License" src="https://img.shields.io/github/license/JoanStinson/StinsonEngine?&logo=github">
+  </a>
+  <a>
+    <img alt="Last Commit" src="https://img.shields.io/github/last-commit/JoanStinson/StinsonEngine?logo=Mapbox&color=orange">
+  </a>
+  <a>
+    <img alt="Repo Size" src="https://img.shields.io/github/repo-size/JoanStinson/StinsonEngine?logo=VirtualBox">
+  </a>
+  <a>
+    <img alt="Downloads" src="https://img.shields.io/github/downloads/JoanStinson/StinsonEngine/total?color=brightgreen">
+  </a>
+  <a>
+    <img alt="Last Release" src="https://img.shields.io/github/v/release/JoanStinson/StinsonEngine?include_prereleases&logo=Dropbox&color=yellow">
+  </a>
+</p>
+
+<p align="center">
   <img width="1200" height="597" src="https://github.com/JoanStinson/Stinson_Engine/blob/master/preview.gif">
  </p>
 
