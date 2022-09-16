@@ -1,6 +1,6 @@
 # Stinson Engine
 
-A 3D engine using C++ with OpenGL that tries to mimic Unity's functionalities.
+A 3D engine using C++ with OpenGL that tries to mimic Unity's functionalities..
 
 <p align="center">
   <a>
